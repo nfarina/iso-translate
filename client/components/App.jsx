@@ -11,6 +11,7 @@ export default function App() {
   const [dataChannel, setDataChannel] = useState(null);
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
+  const eventsRef = useRef(null);
 
   async function startSession() {
     // Get a session token for OpenAI Realtime API
@@ -134,6 +135,7 @@ export default function App() {
         }
 
         setEvents((prev) => [event, ...prev]);
+        eventsRef.current.addEvent(event);
       });
 
       // Set session active when the data channel is opened
@@ -174,8 +176,8 @@ export default function App() {
           <ToolPanel
             sendClientEvent={sendClientEvent}
             sendTextMessage={sendTextMessage}
-            events={events}
             isSessionActive={isSessionActive}
+            eventsRef={eventsRef}
           />
         </section>
       </main>

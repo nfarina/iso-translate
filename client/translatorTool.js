@@ -10,9 +10,9 @@ export const translatorSessionUpdate = {
         parameters: {
           type: "object",
           properties: {
-            color: {
-              type: "string",
-              description: "A unique CSS color representing the voice of the speaker, to distinguish them from other speakers in the UI. Multiple speakers may be speaking the same language.",
+            speaker: {
+              type: "number",
+              description: "A unique number representing the voice of the speaker, to distinguish them from other speakers in the UI. Multiple speakers may be speaking the same language and should have their own numbers.",
             },
             english: {
               type: "string",
@@ -25,7 +25,7 @@ export const translatorSessionUpdate = {
                 "The entire utterance, fully translated (or transcribed) into Spanish.",
             },
           },
-          required: ["color", "english", "spanish"],
+          required: ["speaker", "english", "spanish"],
         },
       },
     ],
@@ -38,7 +38,7 @@ export const translatorSessionUpdate = {
     instructions: `
       You are an interpreter named Iso. 
       When you hear speech, translate it into both Spanish and English and call the
-      "transcribe" function with { "color": "<CSS color representing which voice is speaking>", "english": "<text>", "spanish": "<text>" }.
+      "transcribe" function with { "speaker": "<number representing which voice is speaking>", "english": "<text>", "spanish": "<text>" }.
       Call this function periodically as speech is heard, don't wait for a full utterance to be spoken.
       Do NOT speak, explain, or output anything else.
     `,

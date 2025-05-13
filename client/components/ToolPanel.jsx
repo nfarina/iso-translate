@@ -1,36 +1,67 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useImperativeHandle, useRef } from "react";
 
-function TranslationOutput({ translation }) {
+function TranslationOutput({ english, spanish }) {
   return (
     <div className="bg-blue-50 p-4 rounded-md border border-blue-200 mt-2">
       <p className="font-semibold">Translation:</p>
-      <p>{translation}</p>
+      <p dangerouslySetInnerHTML={{ __html: english }} />
+      <p dangerouslySetInnerHTML={{ __html: spanish }} />
     </div>
   );
 }
 
 export default function ToolPanel({
   isSessionActive,
-  events,
+  eventsRef,
 }) {
-  const [translations, setTranslations] = useState([]);
+  const lastText = useRef("");
 
-  useEffect(() => {
-    if (!events || events.length === 0) return;
+  useImperativeHandle(eventsRef, () => ({
+    addEvent: (event) => {
+      if (event.type === "response.content_part.done" && event.part.type === "text") {
+        // We get duplicate events for some reason, so we just ignore them.
+        if (event.part.text === lastText.current) {
+          return;
+        }
 
-    for (const event of events) {
-      if (event.type === "response.content_part.done" &&
-        event.part.type === "text") {
-        console.log("event", event);
-        console.log("event.part.text", event.part.text);
-        setTranslations(prev => {
-          if (!prev.includes(event.part.text)) {
-            return [event.part.text, ...prev].slice(0, 10);
+        lastText.current = event.part.text;
+        let parsed = null;
+
+        try {
+          parsed = JSON.parse(event.part.text);
+        } catch (error) {
+          console.error("Error parsing translation:", error);
+          return;
+        }
+
+        setEnglish(existing => {
+          const speaker = parsed.speaker;
+          const newEnglish = parsed.english;
+          // The first part of the new text may be duplicated as the last part
+          // of the existing text, so we need to remove the last part of the existing text
+          // if it is the same as the first part of the new text
+          if (existing.endsWith(newEnglish)) {
+            return existing.slice(0, -newEnglish.length);
           }
-          return prev;
+          return existing + " " + `<div style="color: ${getSpeakerColor(speaker)}">${newEnglish}</div>`;
+        });
+        setSpanish(existing => {
+          const speaker = parsed.speaker;
+          const newSpanish = parsed.spanish;
+          // The first part of the new text may be duplicated as the last part
+          // of the existing text, so we need to remove the last part of the existing text
+          // if it is the same as the first part of the new text
+          if (existing.endsWith(newSpanish)) {
+            return existing.slice(0, -newSpanish.length);
+          }
+          return existing + " " + `<div style="color: ${getSpeakerColor(speaker)}">${newSpanish}</div>`;
         });
       }
     }
+  }));
+  const [english, setEnglish] = useState("");
+  const [spanish, setSpanish] = useState("");
+
     // const mostRecentEvent = events[0];
     // console.log("mostRecentEvent", mostRecentEvent);
     // if (
@@ -60,32 +91,31 @@ export default function ToolPanel({
     //     console.log("mostRecentEvent.part.text", mostRecentEvent.part.text);
     //   setTranslations(prev => [mostRecentEvent.part.text ?? "", ...prev].slice(0, 10));
     // }
-  }, [events]);
 
   useEffect(() => {
     if (!isSessionActive) {
-      setTranslations([]);
+      // setTranslations([]);
     }
   }, [isSessionActive]);
 
   return (
     <section className="h-full w-full flex flex-col gap-4">
       <div className="h-full bg-gray-50 rounded-md p-4">
-        <h2 className="text-lg font-bold">English to Spanish Translator</h2>
-        {isSessionActive ? (
-          translations.length > 0 ? (
-            <div className="space-y-3">
-              {translations.map((translation, index) => (
-                <TranslationOutput key={index} translation={translation} />
-              ))}
-            </div>
+        <h2 className="text-lg font-bold">English/Spanish Translator</h2>
+        {english.length > 0 || spanish.length > 0 ? (
+          <div className="space-y-3">
+            <TranslationOutput english={english} spanish={spanish} />
+          </div>
           ) : (
-            <p>Speak in English to see the Spanish translation...</p>
+            <p>Speak in English or Spanish to see the translation...</p>
           )
-        ) : (
-          <p>Start the session to use the translator...</p>
-        )}
+        }
       </div>
     </section>
   );
 } 
+
+function getSpeakerColor(speaker) {
+  const colors = ["#4A90E2", "#50E3C2", "#F5A623", "#9013FE", "#417505", "#8B572A"];
+  return colors[speaker % colors.length];
+}
