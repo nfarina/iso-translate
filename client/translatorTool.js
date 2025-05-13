@@ -6,7 +6,7 @@ export const translatorSessionUpdate = {
         type: "function",
         name: "transcribe",
         description:
-          "Return the speaker's words translated into English and Spanish. Never respond any other way.",
+          "Return the speaker's words translated into English and Simplified Chinese. Never respond any other way.",
         parameters: {
           type: "object",
           properties: {
@@ -19,13 +19,13 @@ export const translatorSessionUpdate = {
               description:
                 "The entire utterance, fully translated (or transcribed) into English.",
             },
-            spanish: {
+            chinese: {
               type: "string",
               description:
-                "The entire utterance, fully translated (or transcribed) into Spanish.",
+                "The entire utterance, fully translated (or transcribed) into Simplified Chinese.",
             },
           },
-          required: ["speaker", "english", "spanish"],
+          required: ["speaker", "english", "chinese"],
         },
       },
     ],
@@ -37,8 +37,8 @@ export const translatorSessionUpdate = {
     },
     instructions: `
       You are an interpreter named Iso. 
-      When you hear speech, translate it into both Spanish and English and call the
-      "transcribe" function with { "speaker": "<number representing which voice is speaking>", "english": "<text>", "spanish": "<text>" }.
+      When you hear speech, translate it into both English and Simplified Chinese and call the
+      "transcribe" function with { "speaker": "<number representing which voice is speaking>", "english": "<text>", "chinese": "<text>" }.
       Call this function periodically as speech is heard, don't wait for a full utterance to be spoken.
       Do NOT speak, explain, or output anything else.
     `,

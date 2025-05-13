@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import logo from "/assets/openai-logomark.svg";
+import logo from "/assets/logo-horizontal.png";
 import EventLog from "./EventLog";
 import SessionControls from "./SessionControls";
 import ToolPanel from "./ToolPanel";
@@ -14,18 +14,12 @@ export default function App() {
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
   const eventsRef = useRef(null);
-  const [apiKey, setApiKey] = useState(null);
+  const [apiKey, setApiKey] = useState(null); // () => localStorage?.getItem('openai_api_key'));
   const [editingApiKey, setEditingApiKey] = useState(false);
-
-  useEffect(() => {
-    const keyFromStorage = localStorage.getItem('openai_api_key');
-    if (keyFromStorage) {
-      setApiKey(keyFromStorage);
-    }
-  }, []);
 
   const handleKeySaved = (key) => {
     setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
   };
 
   async function startSession() {
@@ -199,14 +193,14 @@ export default function App() {
 
   return (
     <>
-      <nav className="absolute top-0 left-0 right-0 h-16 flex items-center">
+      <nav className="absolute top-0 left-0 right-0 h-16 flex items-center safe-top">
         <div className="flex items-center gap-4 w-full m-4 pb-2 border-0 border-b border-solid border-gray-200">
-          <img style={{ width: "24px" }} src={logo} />
-          <h1>Iso Translator</h1>
+          <img style={{ width: "100px" }} src={logo} />
+          {/* <h1>Iso Translate</h1> */}
           <div className="ml-auto">
             <Button 
               onClick={() => setEditingApiKey(!editingApiKey)} 
-              className="p-1 text-gray-400 hover:text-gray-700 bg-transparent"
+              className="p-1 text-gray-900 hover:text-gray-900 bg-transparent"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
@@ -216,7 +210,7 @@ export default function App() {
           </div>
         </div>
       </nav>
-      <main className="absolute top-16 left-0 right-0 bottom-0">
+      <main className="absolute top-16 left-0 right-0 bottom-0 safe-bottom">
         {renderContent()}
       </main>
     </>

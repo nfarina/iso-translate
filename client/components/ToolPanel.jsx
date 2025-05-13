@@ -1,11 +1,11 @@
 import { useEffect, useState, useImperativeHandle, useRef } from "react";
 
-function TranslationOutput({ english, spanish }) {
+function TranslationOutput({ english, chinese }) {
   return (
     <div className="bg-blue-50 p-4 rounded-md border border-blue-200 mt-2">
       <p className="font-semibold">Translation:</p>
       <p dangerouslySetInnerHTML={{ __html: english }} />
-      <p dangerouslySetInnerHTML={{ __html: spanish }} />
+      <p dangerouslySetInnerHTML={{ __html: chinese }} />
     </div>
   );
 }
@@ -45,22 +45,22 @@ export default function ToolPanel({
           }
           return existing + " " + `<div style="color: ${getSpeakerColor(speaker)}">${newEnglish}</div>`;
         });
-        setSpanish(existing => {
+        setChinese(existing => {
           const speaker = parsed.speaker;
-          const newSpanish = parsed.spanish;
+          const newChinese = parsed.chinese;
           // The first part of the new text may be duplicated as the last part
           // of the existing text, so we need to remove the last part of the existing text
           // if it is the same as the first part of the new text
-          if (existing.endsWith(newSpanish)) {
-            return existing.slice(0, -newSpanish.length);
+          if (existing.endsWith(newChinese)) {
+            return existing.slice(0, -newChinese.length);
           }
-          return existing + " " + `<div style="color: ${getSpeakerColor(speaker)}">${newSpanish}</div>`;
+          return existing + " " + `<div style="color: ${getSpeakerColor(speaker)}">${newChinese}</div>`;
         });
       }
     }
   }));
   const [english, setEnglish] = useState("");
-  const [spanish, setSpanish] = useState("");
+  const [chinese, setChinese] = useState("");
 
     // const mostRecentEvent = events[0];
     // console.log("mostRecentEvent", mostRecentEvent);
@@ -101,13 +101,13 @@ export default function ToolPanel({
   return (
     <section className="h-full w-full flex flex-col gap-4">
       <div className="h-full bg-gray-50 rounded-md p-4">
-        <h2 className="text-lg font-bold">English/Spanish Translator</h2>
-        {english.length > 0 || spanish.length > 0 ? (
+        <h2 className="text-lg font-bold">English/Simplified Chinese Translator</h2>
+        {english.length > 0 || chinese.length > 0 ? (
           <div className="space-y-3">
-            <TranslationOutput english={english} spanish={spanish} />
+            <TranslationOutput english={english} chinese={chinese} />
           </div>
           ) : (
-            <p>Speak in English or Spanish to see the translation...</p>
+            <p>Speak in English or Simplified Chinese to see the translation...</p>
           )
         }
       </div>
