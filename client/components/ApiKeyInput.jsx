@@ -42,7 +42,7 @@ export default function ApiKeyInput({ onKeySaved }) {
         <div className="flex gap-2 justify-center mb-4">
           <Button
             onClick={() => setShowKey(!showKey)}
-            className="bg-white hover:bg-gray-200 text-gray-700 text-xs border border-gray-300"
+            className="bg-white hover:bg-gray-200 !text-gray-700 text-xs border border-gray-300"
           >
             {showKey ? 'Hide' : 'Show'} Key
           </Button>
