@@ -20,8 +20,3 @@ export const DEFAULT_LANGUAGE_1 =
   LANGUAGES.find((lang) => lang.code === "en") || LANGUAGES[0];
 export const DEFAULT_LANGUAGE_2 =
   LANGUAGES.find((lang) => lang.code === "es") || LANGUAGES[1];
-
-export function findLanguageByCode(code: string | null): Language | undefined {
-  if (!code) return undefined;
-  return LANGUAGES.find((lang) => lang.code === code);
-}

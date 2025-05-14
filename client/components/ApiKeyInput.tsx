@@ -1,42 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useLocalStorage } from "../utils/useLocalStorage";
 import Button from "./Button";
 
-export default function ApiKeyInput({
-  onKeySaved,
-}: {
-  onKeySaved: (key: string) => void;
-}) {
-  const [apiKey, setApiKey] = useState("");
-  const [storedKey, setStoredKey] = useState<string | null>(null);
+export default function ApiKeyInput() {
+  const [apiKey, setApiKey] = useLocalStorage<string | null>(
+    "App:apiKey",
+    null,
+  );
   const [showKey, setShowKey] = useState(false);
 
-  useEffect(() => {
-    const keyFromStorage = localStorage.getItem("openai_api_key");
-    if (keyFromStorage) {
-      setStoredKey(keyFromStorage);
-    }
-  }, []);
-
-  const handleSaveKey = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem("openai_api_key", apiKey);
-      setStoredKey(apiKey);
-      setApiKey(""); // Clear input field
-      if (onKeySaved) {
-        onKeySaved(apiKey);
-      }
-    }
-  };
-
-  const handleClearKey = () => {
-    localStorage.removeItem("openai_api_key");
-    setStoredKey(null);
-    if (onKeySaved) {
-      onKeySaved(""); // Notify parent that key is cleared
-    }
-  };
-
-  if (storedKey) {
+  if (apiKey) {
     return (
       <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md mx-auto">
         <h2 className="text-lg font-bold mb-4 dark:text-white">
@@ -47,7 +20,7 @@ export default function ApiKeyInput({
             OpenAI API Key is configured
           </p>
           <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 break-all font-mono">
-            {showKey ? storedKey : "••••••••••••••••••••"}
+            {showKey ? apiKey : "••••••••••••••••••••"}
           </p>
           <div className="flex gap-2 justify-center mb-4">
             <Button
@@ -57,7 +30,7 @@ export default function ApiKeyInput({
               {showKey ? "Hide" : "Show"} Key
             </Button>
             <Button
-              onClick={handleClearKey}
+              onClick={() => setApiKey(null)}
               className="bg-red-500 hover:bg-red-600 text-white text-xs"
             >
               Clear Key
@@ -80,15 +53,15 @@ export default function ApiKeyInput({
         </p>
         <input
           type="text"
-          value={apiKey}
+          value={apiKey || ""}
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="Enter your OpenAI API key"
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-4 dark:bg-gray-700 dark:text-white"
           autoComplete="off"
         />
         <Button
-          onClick={handleSaveKey}
-          disabled={!apiKey.trim()}
+          onClick={() => setApiKey(apiKey || "")}
+          disabled={!apiKey?.trim()}
           className="w-full bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-300 dark:disabled:bg-gray-600"
         >
           Save API Key

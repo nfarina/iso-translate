@@ -4,9 +4,9 @@ import { useOpenAISession } from "../hooks/useOpenAISession";
 import {
   DEFAULT_LANGUAGE_1,
   DEFAULT_LANGUAGE_2,
-  findLanguageByCode,
   Language,
 } from "../utils/languages";
+import { useLocalStorage } from "../utils/useLocalStorage";
 import ApiKeyInput from "./ApiKeyInput";
 import Button from "./Button";
 import EventLog from "./EventLog";
@@ -17,10 +17,9 @@ import logoWhite from "/assets/logo-horizontal-white.png";
 import logo from "/assets/logo-horizontal.png";
 
 export default function App() {
-  const [apiKey, setApiKey] = useState<string | null>(() =>
-    typeof window !== "undefined"
-      ? localStorage.getItem("openai_api_key")
-      : null,
+  const [apiKey, setApiKey] = useLocalStorage<string | null>(
+    "App:apiKey",
+    null,
   );
   const [editingApiKey, setEditingApiKey] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
@@ -46,16 +45,14 @@ export default function App() {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  const [language1, setLanguage1] = useState<Language>(() => {
-    if (typeof window === "undefined") return DEFAULT_LANGUAGE_1;
-    const storedLang1Code = localStorage.getItem("selected_language_1_code");
-    return findLanguageByCode(storedLang1Code) || DEFAULT_LANGUAGE_1;
-  });
-  const [language2, setLanguage2] = useState<Language>(() => {
-    if (typeof window === "undefined") return DEFAULT_LANGUAGE_2;
-    const storedLang2Code = localStorage.getItem("selected_language_2_code");
-    return findLanguageByCode(storedLang2Code) || DEFAULT_LANGUAGE_2;
-  });
+  const [language1, setLanguage1] = useLocalStorage<Language>(
+    "App:language1",
+    DEFAULT_LANGUAGE_1,
+  );
+  const [language2, setLanguage2] = useLocalStorage<Language>(
+    "App:language2",
+    DEFAULT_LANGUAGE_2,
+  );
 
   const {
     isSessionActive,
@@ -66,44 +63,20 @@ export default function App() {
   } = useOpenAISession(apiKey, language1, language2); // Pass selected languages
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("selected_language_1_code", language1.code);
-    }
-  }, [language1]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("selected_language_2_code", language2.code);
-    }
-  }, [language2]);
-
-  useEffect(() => {
     if (!apiKey && isSessionActive) {
       stopSession();
     }
   }, [apiKey, isSessionActive, stopSession]);
 
-  const handleKeySaved = (key: string) => {
-    const newApiKey = key.trim() || null;
-    setApiKey(newApiKey);
-    if (newApiKey) {
-      localStorage.setItem("openai_api_key", newApiKey);
-    } else {
-      localStorage.removeItem("openai_api_key");
-    }
-    setEditingApiKey(false);
-  };
-
   function renderHeader() {
     return (
-      <nav className="flex items-center safe-top bg-white dark:bg-gray-800 shadow-sm z-10">
-        <div className="flex items-center gap-4 w-full mx-4 min-w-max">
+      <nav className="flex flex-col safe-top bg-white dark:bg-gray-800 shadow-sm z-10">
+        <div className="flex items-center gap-4 mx-4 min-w-max">
           <img
             style={{ width: "100px", height: "auto" }}
             src={isDarkMode ? logoWhite : logo}
             alt="Iso Translate Logo"
           />
-
           <div className="ml-auto flex items-center gap-2">
             <Button
               onClick={() => setShowLanguageSelector(!showLanguageSelector)}
@@ -150,13 +123,27 @@ export default function App() {
             </Button>
           </div>
         </div>
+        {apiKey &&
+          !editingApiKey &&
+          !isSessionActive &&
+          showLanguageSelector && (
+            <div className="flex pb-2 px-2 bg-white dark:bg-gray-800 shadow-sm">
+              <LanguageSelector
+                currentLanguage1={language1}
+                onLanguage1Change={setLanguage1}
+                currentLanguage2={language2}
+                onLanguage2Change={setLanguage2}
+                isSessionActive={isSessionActive}
+              />
+            </div>
+          )}
       </nav>
     );
   }
 
   function renderContentBody() {
     if (editingApiKey) {
-      return <ApiKeyInput onKeySaved={handleKeySaved} />;
+      return <ApiKeyInput />;
     }
     if (!apiKey) {
       return (
@@ -193,17 +180,6 @@ export default function App() {
   return (
     <main className="flex flex-col min-h-screen dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {renderHeader()}
-      {apiKey && !editingApiKey && !isSessionActive && showLanguageSelector && (
-        <div className="flex pb-2 px-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600 shadow-sm">
-          <LanguageSelector
-            currentLanguage1={language1}
-            onLanguage1Change={setLanguage1}
-            currentLanguage2={language2}
-            onLanguage2Change={setLanguage2}
-            isSessionActive={isSessionActive}
-          />
-        </div>
-      )}
       <div className="h-0 flex-grow p-3 flex flex-col">
         {renderContentBody()}
       </div>

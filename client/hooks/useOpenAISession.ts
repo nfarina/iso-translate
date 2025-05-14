@@ -124,7 +124,20 @@ export function useOpenAISession(
           language1: currentLanguage1,
           language2: currentLanguage2,
         };
-        setTranslationSegments((prev) => [...prev, newSegment]);
+        setTranslationSegments((prev) => {
+          // First build a giant string of all language1 translations thus far.
+          const language1Translations = prev.map(
+            (segment) => segment.translations[currentLanguage1.code],
+          );
+          console.log(
+            `language1Translations: "${language1Translations.join("")}"`,
+          );
+          console.log(
+            `newSegment: "${newSegment.translations[currentLanguage1.code]}"`,
+          );
+
+          return [...prev, newSegment];
+        });
       } else {
         console.warn(
           "Parsed translation object is not in the expected format or missing language keys:",
@@ -222,7 +235,7 @@ export function useOpenAISession(
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-4o-realtime-preview-2024-12-17",
+            model: "gpt-4o-realtime-preview",
             voice: "verse",
           }),
         },

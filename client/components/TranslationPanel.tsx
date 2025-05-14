@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { TranslationSegment } from "../hooks/useOpenAISession";
-import { getSpeakerColor } from "../utils/colorUtils";
+import { getSpeakerColor, getSpeakerColorDark } from "../utils/colorUtils";
 
 interface TranslationPanelProps {
   isSessionActive: boolean;
@@ -15,10 +15,25 @@ export default function TranslationPanel({
   language1Name,
   language2Name,
 }: TranslationPanelProps) {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
   useEffect(() => {
-    // The hook now clears translationSegments on stopSession and on startSession.
-    // No specific local state to clear here based on isSessionActive for now.
-  }, [isSessionActive]);
+    if (typeof window === "undefined") return;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  // The hook now clears translationSegments on stopSession and on startSession.
+  // No specific local state to clear here based on isSessionActive for now.
 
   return (
     <>
@@ -35,7 +50,11 @@ export default function TranslationPanel({
               <div key={`${segment.id}-lang1`} className="ml-1">
                 <p
                   className="text-gray-700 dark:text-gray-300"
-                  style={{ color: getSpeakerColor(segment.speaker) }}
+                  style={{
+                    color: isDarkMode
+                      ? getSpeakerColorDark(segment.speaker)
+                      : getSpeakerColor(segment.speaker),
+                  }}
                 >
                   {segment.translations[segment.language1.code] || "..."}
                 </p>
@@ -54,7 +73,11 @@ export default function TranslationPanel({
               <div key={`${segment.id}-lang2`} className="ml-1">
                 <p
                   className="text-gray-700 dark:text-gray-300"
-                  style={{ color: getSpeakerColor(segment.speaker) }}
+                  style={{
+                    color: isDarkMode
+                      ? getSpeakerColorDark(segment.speaker)
+                      : getSpeakerColor(segment.speaker),
+                  }}
                 >
                   {segment.translations[segment.language2.code] || "..."}
                 </p>
