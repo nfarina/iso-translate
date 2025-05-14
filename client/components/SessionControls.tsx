@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CloudLightning, CloudOff } from "react-feather";
+import { CloudOff, Mic } from "react-feather";
 import Button from "./Button";
 
 interface SessionControlActionProps {
@@ -11,7 +11,14 @@ interface SessionControlActionProps {
   disabled?: boolean;
 }
 
-function ActionButton({ action, textDefault, textPending, icon, className, disabled }: SessionControlActionProps) {
+function ActionButton({
+  action,
+  textDefault,
+  textPending,
+  icon,
+  className,
+  disabled,
+}: SessionControlActionProps) {
   const [isPending, setIsPending] = useState(false);
 
   const handleClick = async () => {
@@ -28,14 +35,16 @@ function ActionButton({ action, textDefault, textPending, icon, className, disab
       // If the action results in a state change that unmounts this button,
       // setIsPending(false) might not run or be needed.
       // If the action fails and the button is still visible, resetting isPending is good.
-       setIsPending(false);
+      setIsPending(false);
     }
   };
 
   return (
     <Button
       onClick={handleClick}
-      className={`${className} ${isPending || disabled ? "opacity-70 cursor-not-allowed" : ""}`}
+      className={`${className} ${
+        isPending || disabled ? "opacity-70 cursor-not-allowed" : ""
+      }`}
       disabled={isPending || disabled}
       icon={icon}
     >
@@ -43,7 +52,6 @@ function ActionButton({ action, textDefault, textPending, icon, className, disab
     </Button>
   );
 }
-
 
 interface SessionControlsProps {
   startSession: () => Promise<void>;
@@ -61,18 +69,18 @@ export default function SessionControls({
       {isSessionActive ? (
         <ActionButton
           action={stopSession}
-          textDefault="Disconnect"
-          textPending="Disconnecting..."
+          textDefault="Stop"
+          textPending="Stopping..."
           icon={<CloudOff height={16} />}
           className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
         />
       ) : (
         <ActionButton
           action={startSession}
-          textDefault="Start Session"
+          textDefault="Start listening"
           textPending="Starting..."
-          icon={<CloudLightning height={16} />}
-          className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white"
+          icon={<Mic height={16} />}
+          className="text-white bg-gradient-to-r from-[#4392C6] to-[#4844B7] hover:opacity-90"
         />
       )}
     </div>

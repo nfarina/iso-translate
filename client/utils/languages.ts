@@ -9,17 +9,19 @@ export const LANGUAGES: Language[] = [
   { name: "Japanese", code: "ja" },
   { name: "French", code: "fr" },
   { name: "German", code: "de" },
-  { name: "Chinese (Simplified)", code: "zh" }, // Using "zh" for simplicity, ensure OpenAI compatibility
+  { name: "Chinese", code: "zh" }, // Using "zh" for simplicity, ensure OpenAI compatibility
   { name: "Korean", code: "ko" },
   { name: "Italian", code: "it" },
   { name: "Portuguese", code: "pt" },
   { name: "Russian", code: "ru" },
 ];
 
-export const DEFAULT_LANGUAGE_1 = LANGUAGES.find(lang => lang.code === "en") || LANGUAGES[0];
-export const DEFAULT_LANGUAGE_2 = LANGUAGES.find(lang => lang.code === "es") || LANGUAGES[1];
+export const DEFAULT_LANGUAGE_1 =
+  LANGUAGES.find((lang) => lang.code === "en") || LANGUAGES[0];
+export const DEFAULT_LANGUAGE_2 =
+  LANGUAGES.find((lang) => lang.code === "es") || LANGUAGES[1];
 
 export function findLanguageByCode(code: string | null): Language | undefined {
   if (!code) return undefined;
-  return LANGUAGES.find(lang => lang.code === code);
+  return LANGUAGES.find((lang) => lang.code === code);
 }
