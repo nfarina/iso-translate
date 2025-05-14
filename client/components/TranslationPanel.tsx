@@ -23,10 +23,15 @@ export default function TranslationPanel({
   return (
     <>
       {isSessionActive || translationSegments.length > 0 ? (
-        <div className="flex-grow flex flex-col h-full space-y-3">
+        <div className="flex-grow flex flex-col h-full space-y-3 text-xl">
           {/* First language box */}
           <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow overflow-y-auto">
             <div className="flex flex-col-reverse space-y-reverse space-y-2">
+              {translationSegments.length === 0 && (
+                <p className="text-gray-500 dark:text-gray-400 italic">
+                  Waiting for {language1Name}...
+                </p>
+              )}
               {translationSegments.map((segment) => (
                 <div key={`${segment.id}-lang1`} className="ml-1">
                   <p
@@ -43,6 +48,11 @@ export default function TranslationPanel({
           {/* Second language box */}
           <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow overflow-y-auto">
             <div className="flex flex-col-reverse space-y-reverse space-y-2">
+              {translationSegments.length === 0 && (
+                <p className="text-gray-500 dark:text-gray-400 italic">
+                  Waiting for {language2Name}...
+                </p>
+              )}
               {translationSegments.map((segment) => (
                 <div key={`${segment.id}-lang2`} className="ml-1">
                   <p
@@ -57,11 +67,11 @@ export default function TranslationPanel({
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex-grow flex items-center justify-center h-full">
           <p className="text-gray-500 dark:text-gray-400 italic text-center">
             {isSessionActive
               ? `Listening... Speak to see translations into ${language1Name} and ${language2Name}.`
-              : "Select languages and start a session to begin translation."}
+              : "Select languages and start listening to begin translation."}
           </p>
         </div>
       )}

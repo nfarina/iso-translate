@@ -13,6 +13,7 @@ import EventLog from "./EventLog";
 import LanguageSelector from "./LanguageSelector";
 import SessionControls from "./SessionControls";
 import TranslationPanel from "./TranslationPanel";
+import logoWhite from "/assets/logo-horizontal-white.png";
 import logo from "/assets/logo-horizontal.png";
 
 export default function App() {
@@ -24,6 +25,26 @@ export default function App() {
   const [editingApiKey, setEditingApiKey] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showLanguageSelector, setShowLanguageSelector] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return (
+      window.matchMedia("(prefers-color-scheme: dark)").matches ||
+      document.documentElement.classList.contains("dark")
+    );
+  });
+
+  // Listen for changes in system preference
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const [language1, setLanguage1] = useState<Language>(() => {
     if (typeof window === "undefined") return DEFAULT_LANGUAGE_1;
@@ -75,11 +96,11 @@ export default function App() {
 
   function renderHeader() {
     return (
-      <nav className="h-16 flex items-center safe-top bg-white dark:bg-gray-800 shadow-sm z-10 overflow-x-auto">
+      <nav className="flex items-center safe-top bg-white dark:bg-gray-800 shadow-sm z-10">
         <div className="flex items-center gap-4 w-full mx-4 min-w-max">
           <img
             style={{ width: "100px", height: "auto" }}
-            src={logo}
+            src={isDarkMode ? logoWhite : logo}
             alt="Iso Translate Logo"
           />
 
@@ -100,7 +121,10 @@ export default function App() {
               <Globe size={20} />
             </Button>
             <Button
-              onClick={() => setShowEvents(!showEvents)}
+              onClick={() => {
+                setShowEvents(!showEvents);
+                setEditingApiKey(false);
+              }}
               className={`p-1 px-2 ${
                 showEvents
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
@@ -113,7 +137,7 @@ export default function App() {
             <Button
               onClick={() => {
                 setEditingApiKey(!editingApiKey);
-                if (showEvents && !editingApiKey) setShowEvents(false);
+                setShowEvents(false);
               }}
               className={`p-1 px-2 ${
                 editingApiKey
@@ -180,9 +204,16 @@ export default function App() {
           />
         </div>
       )}
-      <div className="flex-grow p-3 flex flex-col">{renderContentBody()}</div>
+      <div className="h-0 flex-grow p-3 flex flex-col">
+        {renderContentBody()}
+      </div>
       {apiKey && !editingApiKey && (
-        <div className="p-4 bg-gray-100 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+        <div
+          className="p-4 bg-gray-100 dark:bg-gray-700 bg-white dark:bg-gray-800 flex-shrink-0"
+          style={{
+            boxShadow: "0 -1px 2px 0 rgba(0, 0, 0, 0.05)",
+          }}
+        >
           <SessionControls
             startSession={startSession}
             stopSession={stopSession}

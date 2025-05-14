@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CloudOff, Mic } from "react-feather";
+import { Mic, MicOff } from "react-feather";
 import Button from "./Button";
 
 interface SessionControlActionProps {
@@ -69,10 +69,10 @@ export default function SessionControls({
       {isSessionActive ? (
         <ActionButton
           action={stopSession}
-          textDefault="Stop"
+          textDefault="Stop listening"
           textPending="Stopping..."
-          icon={<CloudOff height={16} />}
-          className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
+          icon={<MicOff height={16} />}
+          className="text-white bg-gradient-to-r from-[#bf642b] to-[#c73232] hover:opacity-90"
         />
       ) : (
         <ActionButton
