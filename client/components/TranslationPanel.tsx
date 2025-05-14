@@ -3,11 +3,11 @@ import { useEffect } from "react";
 export default function TranslationPanel({
   isSessionActive,
   english,
-  chinese,
+  japanese,
 }: {
   isSessionActive: boolean;
   english: string;
-  chinese: string;
+  japanese: string;
 }) {
   // const mostRecentEvent = events[0];
   // console.log("mostRecentEvent", mostRecentEvent);
@@ -48,9 +48,9 @@ export default function TranslationPanel({
   return (
     <>
       <h2 className="text-lg font-bold dark:text-white">
-        English/Simplified Chinese Translator
+        English/Japanese Translator
       </h2>
-      {english.length > 0 || chinese.length > 0 ? (
+      {english.length > 0 || japanese.length > 0 ? (
         <div className="space-y-3 mt-4">
           <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-md border border-blue-200 dark:border-blue-800 mt-2">
             <p className="font-semibold dark:text-white">Translation:</p>
@@ -60,13 +60,13 @@ export default function TranslationPanel({
             />
             <p
               className="dark:text-gray-300"
-              dangerouslySetInnerHTML={{ __html: chinese }}
+              dangerouslySetInnerHTML={{ __html: japanese }}
             />
           </div>
         </div>
       ) : (
         <p className="mt-4 text-gray-600 dark:text-gray-400 italic">
-          Speak in English or Simplified Chinese to see the translation...
+          Speak in English or Japanese to see the translation...
         </p>
       )}
     </>

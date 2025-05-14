@@ -180,7 +180,7 @@ export default function App() {
 
   const lastText = useRef("");
   const [english, setEnglish] = useState("");
-  const [chinese, setChinese] = useState("");
+  const [japanese, setJapanese] = useState("");
 
   function processEvent(event: any) {
     if (
@@ -217,19 +217,19 @@ export default function App() {
           `<div style="color: ${getSpeakerColor(speaker)}">${newEnglish}</div>`
         );
       });
-      setChinese((existing) => {
+      setJapanese((existing) => {
         const speaker = parsed.speaker;
-        const newChinese = parsed.chinese;
+        const newJapanese = parsed.japanese;
         // The first part of the new text may be duplicated as the last part
         // of the existing text, so we need to remove the last part of the existing text
         // if it is the same as the first part of the new text
-        if (existing.endsWith(newChinese)) {
-          return existing.slice(0, -newChinese.length);
+        if (existing.endsWith(newJapanese)) {
+          return existing.slice(0, -newJapanese.length);
         }
         return (
           existing +
           " " +
-          `<div style="color: ${getSpeakerColor(speaker)}">${newChinese}</div>`
+          `<div style="color: ${getSpeakerColor(speaker)}">${newJapanese}</div>`
         );
       });
     }
@@ -339,7 +339,7 @@ export default function App() {
               <div className="flex-grow p-1 overflow-auto">
                 <TranslationPanel
                   english={english}
-                  chinese={chinese}
+                  japanese={japanese}
                   isSessionActive={isSessionActive}
                 />
               </div>

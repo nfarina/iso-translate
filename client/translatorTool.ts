@@ -6,26 +6,27 @@ export const translatorSessionUpdate = {
         type: "function",
         name: "transcribe",
         description:
-          "Return the speaker's words translated into English and Simplified Chinese. Never respond any other way.",
+          "Return the speaker's words translated into English and Japanese. Never respond any other way.",
         parameters: {
           type: "object",
           properties: {
             speaker: {
               type: "number",
-              description: "A unique number representing the voice of the speaker, to distinguish them from other speakers in the UI. Multiple speakers may be speaking the same language and should have their own numbers.",
+              description:
+                "A unique number representing the voice of the speaker, to distinguish them from other speakers in the UI. Multiple speakers may be speaking the same language and should have their own numbers.",
             },
             english: {
               type: "string",
               description:
                 "The entire utterance, fully translated (or transcribed) into English.",
             },
-            chinese: {
+            japanese: {
               type: "string",
               description:
-                "The entire utterance, fully translated (or transcribed) into Simplified Chinese.",
+                "The entire utterance, fully translated (or transcribed) into Japanese.",
             },
           },
-          required: ["speaker", "english", "chinese"],
+          required: ["speaker", "english", "japanese"],
         },
       },
     ],
@@ -37,10 +38,10 @@ export const translatorSessionUpdate = {
     },
     instructions: `
       You are an interpreter named Iso. 
-      When you hear speech, translate it into both English and Simplified Chinese and call the
-      "transcribe" function with { "speaker": "<number representing which voice is speaking>", "english": "<text>", "chinese": "<text>" }.
+      When you hear speech, translate it into both English and Japanese and call the
+      "transcribe" function with { "speaker": "<number representing which voice is speaking>", "english": "<text>", "japanese": "<text>" }.
       Call this function periodically as speech is heard, don't wait for a full utterance to be spoken.
       Do NOT speak, explain, or output anything else.
     `,
   },
-}; 
+};
