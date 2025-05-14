@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getTranslatorSessionUpdate } from "../translatorTool.js";
 import { Language } from "../utils/languages.js";
+import { useLocalStorage } from "../utils/useLocalStorage.js";
 
 // Represents the expected structure from the AI after JSON.parse
 // It will have dynamic keys based on language codes.
@@ -33,9 +34,9 @@ export function useOpenAISession(
 ) {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [events, setEvents] = useState<OpenAIEvent[]>([]);
-  const [translationSegments, setTranslationSegments] = useState<
+  const [translationSegments, setTranslationSegments] = useLocalStorage<
     TranslationSegment[]
-  >([]);
+  >("useOpenAISession:translationSegments", []);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
