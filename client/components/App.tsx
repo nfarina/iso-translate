@@ -16,6 +16,9 @@ import TranslationPanel from "./TranslationPanel";
 import logoWhite from "/assets/logo-horizontal-white.png";
 import logo from "/assets/logo-horizontal.png";
 
+const isInstalled =
+  "standalone" in window.navigator && window.navigator.standalone;
+
 export default function App() {
   const [apiKey, setApiKey] = useLocalStorage<string | null>(
     "App:apiKey",
@@ -53,6 +56,13 @@ export default function App() {
     "App:language2",
     DEFAULT_LANGUAGE_2,
   );
+
+  useEffect(() => {
+    if (isInstalled) {
+      // Fix for iOS home screen web apps and safe area.
+      document.documentElement.style.height = "100vh";
+    }
+  }, []);
 
   const {
     isSessionActive,
@@ -145,19 +155,19 @@ export default function App() {
   function renderContentBody() {
     if (editingApiKey) {
       return (
-        <div className="flex-grow flex items-center justify-center h-full">
+        <div className="flex-grow flex items-center justify-center h-full p-4">
           <ApiKeyInput />
         </div>
       );
     }
     if (!apiKey) {
       return (
-        <div className="flex-grow flex items-center justify-center h-full">
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md text-center shadow-lg">
+        <div className="flex-grow flex items-center justify-center h-full p-4">
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md text-center shadow-sm">
             <h2 className="text-lg font-bold mb-4 dark:text-white">
               Welcome to Iso Translate
             </h2>
-            <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
+            <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Please click the key icon{" "}
                 <Key size={16} className="inline-block -mt-1 align-middle" /> in
@@ -183,14 +193,14 @@ export default function App() {
   }
 
   return (
-    <main className="flex flex-col min-h-screen dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <main className="h-full flex flex-col dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {renderHeader()}
       <div className="h-0 flex-grow p-3 flex flex-col">
         {renderContentBody()}
       </div>
-      {apiKey && !editingApiKey && (
+      <div className="footer bg-gray-100 dark:bg-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
         <div
-          className="footer p-4 bg-gray-100 dark:bg-gray-700 bg-white dark:bg-gray-800 flex-shrink-0"
+          className="p-4"
           style={{
             boxShadow: "0 -1px 2px 0 rgba(0, 0, 0, 0.05)",
           }}
@@ -201,7 +211,7 @@ export default function App() {
             isSessionActive={isSessionActive}
           />
         </div>
-      )}
+      </div>
     </main>
   );
 }

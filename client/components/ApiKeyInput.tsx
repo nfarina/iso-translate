@@ -11,11 +11,11 @@ export default function ApiKeyInput() {
 
   if (apiKey) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md mx-auto">
+      <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md mx-auto shadow-sm">
         <h2 className="text-lg font-bold mb-4 dark:text-white">
           API Key Configuration
         </h2>
-        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
+        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md">
           <p className="text-green-600 dark:text-green-400 font-semibold mb-2">
             OpenAI API Key is configured
           </p>
@@ -62,7 +62,7 @@ export default function ApiKeyInput() {
         <Button
           onClick={() => setApiKey(apiKey || "")}
           disabled={!apiKey?.trim()}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-300 dark:disabled:bg-gray-600"
+          className="bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-300 dark:disabled:bg-gray-600"
         >
           Save API Key
         </Button>

@@ -78,6 +78,10 @@ export default function SessionControls({
   stopSession,
   isSessionActive,
 }: SessionControlsProps) {
+  const [apiKey, setApiKey] = useLocalStorage<string | null>(
+    "App:apiKey",
+    null,
+  );
   const [translationSegments, setTranslationSegments] = useLocalStorage<
     TranslationSegment[]
   >("useOpenAISession:translationSegments", []);
@@ -106,6 +110,7 @@ export default function SessionControls({
       <div className="flex-none">
         <ActionButton
           action={copyTranslations}
+          disabled={translationSegments.length === 0}
           textDefault="Copy"
           textPending="Copying..."
           icon={<Copy size={20} />}
@@ -127,6 +132,7 @@ export default function SessionControls({
           />
         ) : (
           <ActionButton
+            disabled={!apiKey}
             action={startSession}
             textDefault="Start listening"
             textPending="Starting..."
