@@ -29,9 +29,6 @@ function ActionButton({
 }: SessionControlActionProps) {
   const [isPending, setIsPending] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [translationSegments, setTranslationSegments] = useLocalStorage<
-    TranslationSegment[]
-  >("useOpenAISession:translationSegments", []);
 
   const handleClick = async () => {
     if (isPending || disabled) return;

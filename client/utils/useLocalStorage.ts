@@ -152,5 +152,10 @@ export function writeLocalStorage(key: string, value: string | null) {
   } else {
     localStorage.removeItem(key);
   }
-  window.dispatchEvent(new LocalStorageChanged({ key, value }));
+
+  // Use setTimeout to defer event dispatch to the next microtask
+  // This prevents state updates during render
+  setTimeout(() => {
+    window.dispatchEvent(new LocalStorageChanged({ key, value }));
+  }, 0);
 }
