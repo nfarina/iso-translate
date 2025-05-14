@@ -1,13 +1,13 @@
 {
   "name": "Iso Translate",
-  "short_name": "Iso Translate",
-  "display": "standalone",
+  "short_name": "Iso",
+  "description": "Real-time passive translation app",
   "start_url": "/",
-  "scope": "/",
+  "display": "standalone",
   "icons": [
     {
       "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
+      "sizes": "192x192",
       "type": "image/png"
     }
   ]

@@ -1,19 +1,13 @@
 {
   "type": "module",
   "scripts": {
-    "dev": "node server.js --dev",
-    "start": "node server.js",
-    "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build --outDir dist/client --ssrManifest",
-    "build:server": "vite build --outDir dist/server --ssr /index.js",
-    "devinstall": "zx ../../devinstall.mjs -- node server.js --dev",
-    "lint": "eslint . --ext .js,.jsx --fix"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .js,.jsx --fix",
+    "deploy": "npm run build && firebase deploy"
   },
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "history": "^5.3.0",
-    "minipass": "^7.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-feather": "^2.0.10",
@@ -25,6 +19,7 @@
     "postcss-nesting": "^12.0.2",
     "postcss-preset-env": "^7.7.1",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.0.2"
+    "vite": "^5.0.2",
+    "firebase-tools": "^13.0.0"
   }
 }

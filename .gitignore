@@ -1,5 +1,6 @@
 # build output
 dist/
+dist-ssr
 
 # dependencies
 node_modules/
@@ -13,9 +14,18 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # macOS-specific files
 .DS_Store
 
 # jetbrains setting folder
 .idea/
+
+# Firebase
+.firebase/
+*-debug.log
+.runtimeconfig.json

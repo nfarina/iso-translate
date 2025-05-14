@@ -7,4 +7,8 @@ const path = fileURLToPath(import.meta.url);
 export default {
   root: join(dirname(path), "client"),
   plugins: [react()],
+  build: {
+    outDir: '../dist',
+    emptyOutDir: true
+  }
 };
