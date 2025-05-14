@@ -13,6 +13,7 @@ interface ParsedTranslationPayload {
 export interface TranslationSegment {
   id: string;
   speaker: number;
+  timestamp: number;
   translations: Record<string, string>; // Stores translations as { "en": "Hello", "es": "Hola" }
   language1: Language; // The first language selected by the user
   language2: Language; // The second language selected by the user
@@ -120,6 +121,7 @@ export function useOpenAISession(
         const { speaker, ...langTranslations } = parsed;
         const newSegment: TranslationSegment = {
           id: crypto.randomUUID(),
+          timestamp: Date.now(),
           speaker: speaker as number,
           translations: langTranslations as Record<string, string>,
           language1: currentLanguage1,

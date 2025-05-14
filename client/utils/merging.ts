@@ -1,4 +1,40 @@
 import { TranslationSegment } from "../hooks/useOpenAISession";
+import { merge } from "./merge";
+
+export function compressTranslationSegments(
+  segments: TranslationSegment[],
+): TranslationSegment[] {
+  const newSegments: TranslationSegment[] = [];
+  let lastSegment: TranslationSegment | null = null;
+
+  // We're modifying the segments in place, so we need to merge them first.
+  for (const segment of segments) {
+    if (
+      !lastSegment ||
+      (segment.timestamp > lastSegment.timestamp + 2500 &&
+        segment.speaker === lastSegment.speaker)
+    ) {
+      // It's been long enough or has a different speaker, so we
+      // need a new segment.
+      const cloned = merge(segment);
+      newSegments.push(cloned);
+      lastSegment = cloned;
+    } else {
+      // We can append the text to the last segment.
+      lastSegment.translations[segment.language1.code] =
+        lastSegment.translations[segment.language1.code] +
+        " " +
+        segment.translations[segment.language1.code];
+      lastSegment.translations[segment.language2.code] =
+        lastSegment.translations[segment.language2.code] +
+        " " +
+        segment.translations[segment.language2.code];
+      lastSegment.timestamp = segment.timestamp;
+    }
+  }
+
+  return newSegments;
+}
 
 /**
  * Unused now that we discovered output_index.
