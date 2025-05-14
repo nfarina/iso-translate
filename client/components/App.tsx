@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Code, Globe, Key } from "react-feather";
 import { useOpenAISession } from "../hooks/useOpenAISession";
 import {
   DEFAULT_LANGUAGE_1,
@@ -22,6 +23,7 @@ export default function App() {
   );
   const [editingApiKey, setEditingApiKey] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(true);
 
   const [language1, setLanguage1] = useState<Language>(() => {
     if (typeof window === "undefined") return DEFAULT_LANGUAGE_1;
@@ -83,54 +85,44 @@ export default function App() {
 
           <div className="ml-auto flex items-center gap-2">
             <Button
+              onClick={() => setShowLanguageSelector(!showLanguageSelector)}
+              className={`p-1 px-2 ${
+                showLanguageSelector
+                  ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
+                  : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
+              } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
+              title={
+                showLanguageSelector
+                  ? "Hide Language Selector"
+                  : "Show Language Selector"
+              }
+            >
+              <Globe size={20} />
+            </Button>
+            <Button
               onClick={() => setShowEvents(!showEvents)}
-              className={`p-2 ${
+              className={`p-1 px-2 ${
                 showEvents
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
                   : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
               } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
               title={showEvents ? "Show Translations" : "Show Event Log"}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="4 17 10 11 4 5" />
-                <line x1="12" y1="19" x2="20" y2="19" />
-              </svg>
+              <Code size={20} />
             </Button>
             <Button
               onClick={() => {
                 setEditingApiKey(!editingApiKey);
                 if (showEvents && !editingApiKey) setShowEvents(false);
               }}
-              className={`p-2 ${
+              className={`p-1 px-2 ${
                 editingApiKey
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
                   : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
               } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
               title="API Key Settings"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-              </svg>
+              <Key size={20} />
             </Button>
           </div>
         </div>
@@ -152,21 +144,8 @@ export default function App() {
             <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Please click the key icon{" "}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="1em"
-                  height="1em"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="inline-block -mt-1 align-middle"
-                >
-                  <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                </svg>{" "}
-                in the top-right corner to add your OpenAI API key.
+                <Key size={16} className="inline-block -mt-1 align-middle" /> in
+                the top-right corner to add your OpenAI API key.
               </p>
             </div>
           </div>
@@ -190,7 +169,7 @@ export default function App() {
   return (
     <main className="flex flex-col min-h-screen dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {renderHeader()}
-      {apiKey && !editingApiKey && !isSessionActive && (
+      {apiKey && !editingApiKey && !isSessionActive && showLanguageSelector && (
         <div className="flex pb-2 px-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600 shadow-sm">
           <LanguageSelector
             currentLanguage1={language1}
