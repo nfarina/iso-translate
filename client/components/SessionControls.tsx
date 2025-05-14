@@ -2,99 +2,78 @@ import { useState } from "react";
 import { CloudLightning, CloudOff } from "react-feather";
 import Button from "./Button";
 
-function SessionStopped({ startSession }: { startSession: () => void }) {
-  const [isActivating, setIsActivating] = useState(false);
+interface SessionControlActionProps {
+  action: () => Promise<void> | void; // Can be async or sync
+  textDefault: string;
+  textPending: string;
+  icon: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+}
 
-  function handleStartSession() {
-    if (isActivating) return;
+function ActionButton({ action, textDefault, textPending, icon, className, disabled }: SessionControlActionProps) {
+  const [isPending, setIsPending] = useState(false);
 
-    setIsActivating(true);
-    startSession();
-  }
+  const handleClick = async () => {
+    if (isPending || disabled) return;
+    setIsPending(true);
+    try {
+      await Promise.resolve(action()); // Handles both sync and async actions
+    } catch (error) {
+      console.error(`Error during ${textDefault}:`, error);
+      // Error handling can be enhanced here, e.g., show toast
+    } finally {
+      // The parent's isSessionActive state will ultimately control which view (Stopped/Active) is shown.
+      // This local isPending is for immediate button feedback.
+      // If the action results in a state change that unmounts this button,
+      // setIsPending(false) might not run or be needed.
+      // If the action fails and the button is still visible, resetting isPending is good.
+       setIsPending(false);
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center w-full h-full">
-      <Button
-        onClick={handleStartSession}
-        className={isActivating ? "bg-gray-600" : "bg-red-600"}
-        icon={<CloudLightning height={16} />}
-      >
-        {isActivating ? "starting session..." : "start session"}
-      </Button>
-    </div>
+    <Button
+      onClick={handleClick}
+      className={`${className} ${isPending || disabled ? "opacity-70 cursor-not-allowed" : ""}`}
+      disabled={isPending || disabled}
+      icon={icon}
+    >
+      {isPending ? textPending : textDefault}
+    </Button>
   );
 }
 
-function SessionActive({
-  stopSession,
-  sendTextMessage,
-}: {
+
+interface SessionControlsProps {
+  startSession: () => Promise<void>;
   stopSession: () => void;
-  sendTextMessage: (message: string) => void;
-}) {
-  const [message, setMessage] = useState("");
-
-  function handleSendClientEvent() {
-    sendTextMessage(message);
-    setMessage("");
-  }
-
-  return (
-    <div className="flex items-center justify-center w-full h-full gap-4">
-      {/* <input
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && message.trim()) {
-            handleSendClientEvent();
-          }
-        }}
-        type="text"
-        placeholder="send a text message..."
-        className="border border-gray-200 dark:border-gray-600 rounded-full p-4 flex-1 dark:bg-gray-800 dark:text-white"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-      />
-      <Button
-        onClick={() => {
-          if (message.trim()) {
-            handleSendClientEvent();
-          }
-        }}
-        icon={<MessageSquare height={16} />}
-        className="bg-blue-400 dark:bg-blue-500"
-      >
-        send text
-      </Button> */}
-      <Button onClick={stopSession} icon={<CloudOff height={16} />}>
-        disconnect
-      </Button>
-    </div>
-  );
+  isSessionActive: boolean;
 }
 
 export default function SessionControls({
   startSession,
   stopSession,
-  sendClientEvent,
-  sendTextMessage,
-  serverEvents,
   isSessionActive,
-}: {
-  startSession: () => void;
-  stopSession: () => void;
-  sendClientEvent: (message: any) => void;
-  sendTextMessage: (message: string) => void;
-  serverEvents: any[];
-  isSessionActive: boolean;
-}) {
+}: SessionControlsProps) {
   return (
-    <div className="flex gap-4 h-full rounded-md">
+    <div className="flex items-center justify-center w-full h-full gap-4">
       {isSessionActive ? (
-        <SessionActive
-          stopSession={stopSession}
-          sendTextMessage={sendTextMessage}
+        <ActionButton
+          action={stopSession}
+          textDefault="Disconnect"
+          textPending="Disconnecting..."
+          icon={<CloudOff height={16} />}
+          className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
         />
       ) : (
-        <SessionStopped startSession={startSession} />
+        <ActionButton
+          action={startSession}
+          textDefault="Start Session"
+          textPending="Starting..."
+          icon={<CloudLightning height={16} />}
+          className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white"
+        />
       )}
     </div>
   );

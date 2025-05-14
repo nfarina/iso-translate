@@ -1,254 +1,67 @@
-import { useEffect, useRef, useState } from "react";
-import { translatorSessionUpdate } from "../translatorTool.js";
+import { useEffect, useState } from "react";
+import { useOpenAISession } from "../hooks/useOpenAISession";
 import ApiKeyInput from "./ApiKeyInput";
 import Button from "./Button";
 import EventLog from "./EventLog";
 import SessionControls from "./SessionControls";
-import TranslationPanel, { getSpeakerColor } from "./TranslationPanel";
+import TranslationPanel from "./TranslationPanel";
 import logo from "/assets/logo-horizontal.png";
 
 export default function App() {
-  const [isSessionActive, setIsSessionActive] = useState(false);
-  const [events, setEvents] = useState<any[]>([]);
-  const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
-  const peerConnection = useRef<RTCPeerConnection | null>(null);
-  const audioElement = useRef<HTMLAudioElement | null>(null);
-  const [apiKey, setApiKey] = useState(() =>
-    localStorage?.getItem("openai_api_key"),
+  const [apiKey, setApiKey] = useState<string | null>(() =>
+    typeof window !== "undefined"
+      ? localStorage.getItem("openai_api_key")
+      : null,
   );
   const [editingApiKey, setEditingApiKey] = useState(false);
-  const [showEvents, setShowEvents] = useState(false);
+  const [showEvents, setShowEvents] = useState(false); // Default to showing translations
+
+  const {
+    isSessionActive,
+    events,
+    translationSegments,
+    startSession,
+    stopSession,
+    // sendClientEvent, // Exposed by hook, not directly used by App UI
+  } = useOpenAISession(apiKey);
+
+  useEffect(() => {
+    // If API key is removed while a session is active, stop the session.
+    if (!apiKey && isSessionActive) {
+      stopSession();
+    }
+  }, [apiKey, isSessionActive, stopSession]);
 
   const handleKeySaved = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem("openai_api_key", key);
+    const newApiKey = key.trim() || null;
+    setApiKey(newApiKey);
+    if (newApiKey) {
+      localStorage.setItem("openai_api_key", newApiKey);
+    } else {
+      localStorage.removeItem("openai_api_key");
+      // Effect above will handle stopping session if it was active
+    }
     setEditingApiKey(false);
   };
 
-  async function startSession() {
-    try {
-      // Generate token client-side using the API key from localStorage
-      const tokenResponse = await fetch(
-        "https://api.openai.com/v1/realtime/sessions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-realtime-preview-2024-12-17",
-            voice: "verse",
-          }),
-        },
-      );
-
-      const data = await tokenResponse.json();
-      const EPHEMERAL_KEY = data.client_secret.value;
-
-      // Create a peer connection
-      const pc = new RTCPeerConnection();
-
-      // Set up to play remote audio from the model
-      audioElement.current = document.createElement("audio");
-      audioElement.current.autoplay = true;
-      pc.ontrack = (e) => (audioElement.current!.srcObject = e.streams[0]);
-
-      // Add local audio track for microphone input in the browser
-      const ms = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      pc.addTrack(ms.getTracks()[0]);
-
-      // Set up data channel for sending and receiving events
-      const dc = pc.createDataChannel("oai-events");
-      setDataChannel(dc);
-
-      // Start the session using the Session Description Protocol (SDP)
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      const baseUrl = "https://api.openai.com/v1/realtime";
-      const model = "gpt-4o-realtime-preview-2024-12-17";
-      const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
-        method: "POST",
-        body: offer.sdp,
-        headers: {
-          Authorization: `Bearer ${EPHEMERAL_KEY}`,
-          "Content-Type": "application/sdp",
-        },
-      });
-
-      const answer = {
-        type: "answer",
-        sdp: await sdpResponse.text(),
-      };
-      await pc.setRemoteDescription(answer as RTCSessionDescriptionInit);
-
-      peerConnection.current = pc;
-    } catch (error) {
-      console.error("Failed to start session:", error);
-    }
-  }
-
-  // Stop current session, clean up peer connection and data channel
-  function stopSession() {
-    if (dataChannel) {
-      dataChannel.close();
-    }
-
-    peerConnection.current?.getSenders().forEach((sender) => {
-      if (sender.track) {
-        sender.track.stop();
-      }
-    });
-
-    if (peerConnection.current) {
-      peerConnection.current.close();
-    }
-
-    setIsSessionActive(false);
-    setDataChannel(null);
-    peerConnection.current = null;
-  }
-
-  // Send a message to the model
-  function sendClientEvent(message: any) {
-    if (dataChannel) {
-      const timestamp = new Date().toLocaleTimeString();
-      message.event_id = message.event_id || crypto.randomUUID();
-
-      // send event before setting timestamp since the backend peer doesn't expect this field
-      dataChannel.send(JSON.stringify(message));
-
-      // if guard just in case the timestamp exists by miracle
-      if (!message.timestamp) {
-        message.timestamp = timestamp;
-      }
-      setEvents((prev) => [message, ...prev]);
-    } else {
-      console.error(
-        "Failed to send message - no data channel available",
-        message,
-      );
-    }
-  }
-
-  // Send a text message to the model
-  function sendTextMessage(message: string) {
-    const event = {
-      type: "conversation.item.create",
-      item: {
-        type: "message",
-        role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: message,
-          },
-        ],
-      },
-    };
-
-    sendClientEvent(event);
-    sendClientEvent({ type: "response.create", modalities: ["text"] });
-  }
-
-  // Attach event listeners to the data channel when a new one is created
-  useEffect(() => {
-    if (dataChannel) {
-      // Append new server events to the list
-      dataChannel.addEventListener("message", (e) => {
-        const event = JSON.parse(e.data);
-        if (!event.timestamp) {
-          event.timestamp = new Date().toLocaleTimeString();
-        }
-
-        setEvents((prev) => [event, ...prev]);
-        processEvent(event);
-      });
-
-      // Set session active when the data channel is opened
-      dataChannel.addEventListener("open", () => {
-        setIsSessionActive(true);
-        setEvents([]);
-        // Send the translator session update
-        sendClientEvent(translatorSessionUpdate);
-      });
-    }
-  }, [dataChannel]);
-
-  const lastText = useRef("");
-  const [english, setEnglish] = useState("");
-  const [japanese, setJapanese] = useState("");
-
-  function processEvent(event: any) {
-    if (
-      event.type === "response.content_part.done" &&
-      event.part.type === "text"
-    ) {
-      // We get duplicate events for some reason, so we just ignore them.
-      if (event.part.text === lastText.current) {
-        return;
-      }
-
-      lastText.current = event.part.text;
-      let parsed = null;
-
-      try {
-        parsed = JSON.parse(event.part.text);
-      } catch (error) {
-        console.error("Error parsing translation:", error);
-        return;
-      }
-
-      setEnglish((existing) => {
-        const speaker = parsed.speaker;
-        const newEnglish = parsed.english;
-        // The first part of the new text may be duplicated as the last part
-        // of the existing text, so we need to remove the last part of the existing text
-        // if it is the same as the first part of the new text
-        if (existing.endsWith(newEnglish)) {
-          return existing.slice(0, -newEnglish.length);
-        }
-        return (
-          existing +
-          " " +
-          `<div style="color: ${getSpeakerColor(speaker)}">${newEnglish}</div>`
-        );
-      });
-      setJapanese((existing) => {
-        const speaker = parsed.speaker;
-        const newJapanese = parsed.japanese;
-        // The first part of the new text may be duplicated as the last part
-        // of the existing text, so we need to remove the last part of the existing text
-        // if it is the same as the first part of the new text
-        if (existing.endsWith(newJapanese)) {
-          return existing.slice(0, -newJapanese.length);
-        }
-        return (
-          existing +
-          " " +
-          `<div style="color: ${getSpeakerColor(speaker)}">${newJapanese}</div>`
-        );
-      });
-    }
-  }
-
   function renderHeader() {
     return (
-      <nav className="absolute top-0 left-0 right-0 h-16 flex items-center safe-top bg-white dark:bg-gray-800">
-        <div className="flex items-center gap-4 w-full m-4 pb-2">
-          <img style={{ width: "100px" }} src={logo} />
-          {/* <h1>Iso Translate</h1> */}
-          <div className="ml-auto flex items-center">
-            {/* Console/Events toggle button */}
+      <nav className="absolute top-0 left-0 right-0 h-16 flex items-center safe-top bg-white dark:bg-gray-800 shadow-sm z-10">
+        <div className="flex items-center gap-4 w-full mx-4">
+          <img
+            style={{ width: "100px", height: "auto" }}
+            src={logo}
+            alt="Iso Translate Logo"
+          />
+          <div className="ml-auto flex items-center gap-2">
             <Button
               onClick={() => setShowEvents(!showEvents)}
-              className={`p-1 ${
-                showEvents ? "!text-blue-500" : "!text-gray-500"
-              } hover:text-gray-900 dark:hover:text-gray-300 bg-transparent mr-2`}
-              title={showEvents ? "Show Translation" : "Show Events"}
+              className={`p-2 ${
+                showEvents
+                  ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
+                  : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
+              } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
+              title={showEvents ? "Show Translations" : "Show Event Log"}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -261,17 +74,21 @@ export default function App() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <polyline points="4 17 10 11 4 5"></polyline>
-                <line x1="12" y1="19" x2="20" y2="19"></line>
+                <polyline points="4 17 10 11 4 5" />
+                <line x1="12" y1="19" x2="20" y2="19" />
               </svg>
             </Button>
             <Button
-              onClick={() => setEditingApiKey(!editingApiKey)}
-              className={`p-1 !text-gray-500 ${
+              onClick={() => {
+                setEditingApiKey(!editingApiKey);
+                if (showEvents && !editingApiKey) setShowEvents(false); // Switch to translation view if opening API key editor from events
+              }}
+              className={`p-2 ${
                 editingApiKey
-                  ? "!text-blue-500"
-                  : "hover:text-gray-900 dark:hover:text-gray-300"
-              } bg-transparent`}
+                  ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
+                  : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
+              } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
+              title="API Key Settings"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -293,76 +110,71 @@ export default function App() {
     );
   }
 
-  function renderContent() {
+  function renderContentBody() {
     if (editingApiKey) {
-      return (
-        <>
-          {renderHeader()}
-          <div className="mt-16 p-1">
-            <ApiKeyInput onKeySaved={handleKeySaved} />
-          </div>
-        </>
-      );
+      return <ApiKeyInput onKeySaved={handleKeySaved} />;
     }
-
     if (!apiKey) {
       return (
-        <>
-          {renderHeader()}
-          <div className="mt-16 p-1 flex items-center justify-center">
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md">
-              <h2 className="text-lg font-bold mb-4 dark:text-white">
-                Welcome to Iso Translate
-              </h2>
-              <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Please click the key icon in the upper-right corner to add
-                  your OpenAI API key to get started.
-                </p>
-              </div>
+        <div className="flex items-center justify-center h-full">
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md text-center shadow-lg">
+            <h2 className="text-lg font-bold mb-4 dark:text-white">
+              Welcome to Iso Translate
+            </h2>
+            <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Please click the key icon{" "}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="1em"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="inline-block -mt-1 align-middle"
+                >
+                  <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                </svg>{" "}
+                in the top-right corner to add your OpenAI API key.
+              </p>
             </div>
           </div>
-        </>
+        </div>
       );
     }
-
+    // API key exists, show main app UI
+    if (showEvents) {
+      return <EventLog events={events} />;
+    }
     return (
-      <>
-        {renderHeader()}
-        <div className="flex flex-col w-full h-full overflow-hidden">
-          <div className="flex-grow flex mt-16">
-            {showEvents ? (
-              <div className="flex-grow p-1 h-[calc(100vh-8rem)] overflow-hidden">
-                <EventLog events={events} />
-              </div>
-            ) : (
-              <div className="flex-grow p-1 overflow-auto">
-                <TranslationPanel
-                  english={english}
-                  japanese={japanese}
-                  isSessionActive={isSessionActive}
-                />
-              </div>
-            )}
-          </div>
-          <div className="p-1 bg-gray-100 dark:bg-gray-700">
-            <SessionControls
-              startSession={startSession}
-              stopSession={stopSession}
-              sendClientEvent={sendClientEvent}
-              sendTextMessage={sendTextMessage}
-              serverEvents={events.filter((e) => e.type === "server")}
-              isSessionActive={isSessionActive}
-            />
-          </div>
-        </div>
-      </>
+      <TranslationPanel
+        translationSegments={translationSegments}
+        isSessionActive={isSessionActive}
+      />
     );
   }
 
   return (
-    <main className="absolute top-0 left-0 right-0 bottom-0 safe-bottom dark:bg-gray-900">
-      {renderContent()}
+    <main className="absolute inset-0 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
+      {renderHeader()}
+      <div className="flex-grow overflow-y-auto p-4 pt-20">
+        {" "}
+        {/* pt-20 = 16 (header) + 4 (padding) */}
+        {renderContentBody()}
+      </div>
+      {apiKey &&
+        !editingApiKey && ( // Only show session controls if API key is set and not editing it
+          <div className="p-4 bg-gray-100 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+            <SessionControls
+              startSession={startSession}
+              stopSession={stopSession}
+              isSessionActive={isSessionActive}
+            />
+          </div>
+        )}
     </main>
   );
 }
