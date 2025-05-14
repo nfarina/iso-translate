@@ -100,14 +100,14 @@ export default function ToolPanel({
 
   return (
     <section className="h-full w-full flex flex-col gap-4">
-      <div className="h-full bg-gray-50 rounded-md p-4">
+      <div className="h-full w-full bg-gray-50 rounded-md p-4">
         <h2 className="text-lg font-bold">English/Simplified Chinese Translator</h2>
         {english.length > 0 || chinese.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-3 mt-4">
             <TranslationOutput english={english} chinese={chinese} />
           </div>
           ) : (
-            <p>Speak in English or Simplified Chinese to see the translation...</p>
+            <p className="mt-4 text-gray-600 italic">Speak in English or Simplified Chinese to see the translation...</p>
           )
         }
       </div>

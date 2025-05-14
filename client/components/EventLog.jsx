@@ -2,63 +2,59 @@ import { ArrowUp, ArrowDown } from "react-feather";
 import { useState } from "react";
 
 function Event({ event, timestamp }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  if (!event) {
+    return;
+  }
 
-  const isClient = event.event_id && !event.event_id.startsWith("event_");
+  // Format timestamp
+  const date = new Date(timestamp);
+  const formattedTime = date.toLocaleTimeString();
 
+  // Create JSON view
+  const formattedJson = JSON.stringify(event, null, 2);
+  
   return (
-    <div className="flex flex-col gap-2 p-2 rounded-md bg-gray-50">
-      <div
-        className="flex items-center gap-2 cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {isClient ? (
-          <ArrowDown className="text-blue-400" />
-        ) : (
-          <ArrowUp className="text-green-400" />
-        )}
-        <div className="text-sm text-gray-500">
-          {isClient ? "client:" : "server:"}
-          &nbsp;{event.type} | {timestamp}
-        </div>
+    <div className="bg-white rounded border border-gray-200 p-2 text-xs">
+      <div className="flex justify-between items-center mb-1">
+        <span className="font-mono text-blue-600">{event.type}</span>
+        <span className="text-gray-500">{formattedTime}</span>
       </div>
-      <div
-        className={`text-gray-500 bg-gray-200 p-2 rounded-md overflow-x-auto ${
-          isExpanded ? "block" : "hidden"
-        }`}
-      >
-        <pre className="text-xs">{JSON.stringify(event, null, 2)}</pre>
-      </div>
+      <pre className="bg-gray-50 p-2 rounded overflow-x-auto">{formattedJson}</pre>
     </div>
   );
 }
 
 export default function EventLog({ events }) {
-  const eventsToDisplay = [];
-  let deltaEvents = {};
-
-  events.forEach((event) => {
-    if (event.type.endsWith("delta")) {
-      if (deltaEvents[event.type]) {
-        // for now just log a single event per render pass
-        return;
-      } else {
-        deltaEvents[event.type] = event;
-      }
+  // group events by type
+  const groupedEvents = events.reduce((acc, event) => {
+    if (!acc[event.type]) {
+      acc[event.type] = [];
     }
-
-    eventsToDisplay.push(
-      <Event key={event.event_id} event={event} timestamp={event.timestamp} />,
-    );
-  });
+    acc[event.type].push(event);
+    return acc;
+  }, {});
 
   return (
-    <div className="flex flex-col gap-2 overflow-x-auto">
-      {events.length === 0 ? (
-        <div className="text-gray-500">Awaiting events...</div>
-      ) : (
-        eventsToDisplay
-      )}
-    </div>
+    <section className="h-full w-full overflow-auto p-1">
+      <div className="h-full w-full bg-gray-50 rounded-md p-4">
+        <h2 className="text-lg font-bold mb-4">Event Log</h2>
+        {events.length === 0 ? (
+          <p className="text-gray-600 italic">No events yet...</p>
+        ) : (
+          <div className="space-y-2">
+            {Object.entries(groupedEvents).map(([type, events]) => (
+              <div key={type} className="mb-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">{type} ({events.length})</h3>
+                <div className="space-y-1">
+                  {events.slice(0, 10).map((event, i) => (
+                    <Event key={i} event={event} timestamp={event.timestamp} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

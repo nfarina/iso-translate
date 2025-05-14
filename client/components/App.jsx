@@ -16,10 +16,12 @@ export default function App() {
   const eventsRef = useRef(null);
   const [apiKey, setApiKey] = useState(() => localStorage?.getItem('openai_api_key'));
   const [editingApiKey, setEditingApiKey] = useState(false);
+  const [showEvents, setShowEvents] = useState(false);
 
   const handleKeySaved = (key) => {
     setApiKey(key);
     localStorage.setItem('openai_api_key', key);
+    setEditingApiKey(false);
   };
 
   async function startSession() {
@@ -178,62 +180,101 @@ export default function App() {
     }
   }, [dataChannel]);
 
-  function renderContent() {
-    if (!apiKey || editingApiKey) {
-      return <ApiKeyInput onKeySaved={handleKeySaved} />;
-    }
-
+  function renderHeader() {
     return (
-      <>
-        <section className="absolute top-0 left-0 right-[380px] bottom-0 flex">
-          <section className="absolute top-0 left-0 right-0 bottom-32 px-4 overflow-y-auto">
-            <EventLog events={events} />
-          </section>
-          <section className="absolute h-32 left-0 right-0 bottom-0 p-4">
-            <SessionControls
-              startSession={startSession}
-              stopSession={stopSession}
-              sendClientEvent={sendClientEvent}
-              sendTextMessage={sendTextMessage}
-              events={events}
-              isSessionActive={isSessionActive}
-            />
-          </section>
-        </section>
-        <section className="absolute top-0 w-[380px] right-0 bottom-0 p-4 pt-0 overflow-y-auto">
-          <ToolPanel
-            sendClientEvent={sendClientEvent}
-            sendTextMessage={sendTextMessage}
-            isSessionActive={isSessionActive}
-            eventsRef={eventsRef}
-          />
-        </section>
-      </>
-    );
-  }
-
-  return (
-    <>
       <nav className="absolute top-0 left-0 right-0 h-16 flex items-center safe-top">
         <div className="flex items-center gap-4 w-full m-4 pb-2">
           <img style={{ width: "100px" }} src={logo} />
           {/* <h1>Iso Translate</h1> */}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center">
+            {/* Console/Events toggle button */}
             <Button 
-              onClick={() => setEditingApiKey(!editingApiKey)} 
-              className="p-1 !text-gray-500 hover:!text-gray-900 bg-transparent"
+              onClick={() => setShowEvents(!showEvents)} 
+              className={`p-1 ${showEvents ? "!text-blue-500" : "!text-gray-500"} hover:text-gray-900 bg-transparent mr-2`}
+              title={showEvents ? "Show Translation" : "Show Events"}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                <circle cx="12" cy="12" r="3"/>
+                <polyline points="4 17 10 11 4 5"></polyline>
+                <line x1="12" y1="19" x2="20" y2="19"></line>
+              </svg>
+            </Button>
+            <Button 
+              onClick={() => setEditingApiKey(!editingApiKey)} 
+              className={`p-1 !text-gray-500 ${editingApiKey ? "!text-blue-500" : "hover:text-gray-900"} bg-transparent`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
               </svg>
             </Button>
           </div>
         </div>
       </nav>
-      <main className="absolute top-16 left-0 right-0 bottom-0 safe-bottom">
-        {renderContent()}
-      </main>
-    </>
+    );
+  }
+
+  function renderContent() {
+    if (editingApiKey) {
+      return (
+        <>
+          {renderHeader()}
+          <div className="mt-16 p-1">
+            <ApiKeyInput onKeySaved={handleKeySaved} />
+          </div>
+        </>
+      );
+    }
+
+    if (!apiKey) {
+      return (
+        <>
+        {renderHeader()}
+        <div className="mt-16 p-1 flex items-center justify-center">
+          <div className="bg-gray-50 rounded-md p-6 max-w-md">
+            <h2 className="text-lg font-bold mb-4">Welcome to Iso Translate</h2>
+            <div className="bg-white p-4 border border-gray-200 rounded-md shadow-sm">
+              <p className="text-sm text-gray-600 mb-4">
+                Please click the key icon in the upper-right corner to add your OpenAI API key to get started.
+              </p>
+            </div>
+          </div>
+        </div>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {renderHeader()}
+        <div className="flex flex-col w-full h-full overflow-hidden">
+          <div className="flex-grow flex mt-16">
+            {showEvents ? (
+              <div className="flex-grow p-1 overflow-auto">
+                <EventLog events={events} />
+              </div>
+            ) : (
+              <div className="flex-grow p-1 overflow-auto">
+                <ToolPanel isSessionActive={isSessionActive} eventsRef={eventsRef} />
+              </div>
+            )}
+          </div>
+          <div className="p-1 bg-gray-100">
+            <SessionControls
+              startSession={startSession}
+              stopSession={stopSession}
+              sendClientEvent={sendClientEvent}
+              sendTextMessage={sendTextMessage}
+              serverEvents={events.filter((e) => e.type === "server")}
+              isSessionActive={isSessionActive}
+            />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <main className="absolute top-0 left-0 right-0 bottom-0 safe-bottom">
+      {renderContent()}
+    </main>
   );
 }
