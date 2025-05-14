@@ -70,7 +70,7 @@ export default function App() {
 
   function renderHeader() {
     return (
-      <nav className="flex flex-col safe-top bg-white dark:bg-gray-800 shadow-xs z-10">
+      <nav className="flex flex-col bg-white dark:bg-gray-800 shadow-xs z-10">
         <div className="flex items-center gap-4 mx-4 min-w-max">
           <img
             style={{ width: "100px", height: "auto" }}
@@ -127,31 +127,32 @@ export default function App() {
             </Button>
           </div>
         </div>
-        {apiKey &&
-          !editingApiKey &&
-          !isSessionActive &&
-          showLanguageSelector && (
-            <div className="flex pb-2 px-2 bg-white dark:bg-gray-800 shadow-xs">
-              <LanguageSelector
-                currentLanguage1={language1}
-                onLanguage1Change={setLanguage1}
-                currentLanguage2={language2}
-                onLanguage2Change={setLanguage2}
-                isSessionActive={isSessionActive}
-              />
-            </div>
-          )}
+        {!isSessionActive && showLanguageSelector && (
+          <div className="flex pb-2 px-2 bg-white dark:bg-gray-800 shadow-xs">
+            <LanguageSelector
+              currentLanguage1={language1}
+              onLanguage1Change={setLanguage1}
+              currentLanguage2={language2}
+              onLanguage2Change={setLanguage2}
+              isSessionActive={isSessionActive}
+            />
+          </div>
+        )}
       </nav>
     );
   }
 
   function renderContentBody() {
     if (editingApiKey) {
-      return <ApiKeyInput />;
+      return (
+        <div className="flex-grow flex items-center justify-center h-full">
+          <ApiKeyInput />
+        </div>
+      );
     }
     if (!apiKey) {
       return (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex-grow flex items-center justify-center h-full">
           <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md text-center shadow-lg">
             <h2 className="text-lg font-bold mb-4 dark:text-white">
               Welcome to Iso Translate
@@ -184,13 +185,12 @@ export default function App() {
   return (
     <main className="flex flex-col min-h-screen dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {renderHeader()}
-
       <div className="h-0 flex-grow p-3 flex flex-col">
         {renderContentBody()}
       </div>
       {apiKey && !editingApiKey && (
         <div
-          className="p-4 bg-gray-100 dark:bg-gray-700 bg-white dark:bg-gray-800 flex-shrink-0"
+          className="footer p-4 bg-gray-100 dark:bg-gray-700 bg-white dark:bg-gray-800 flex-shrink-0"
           style={{
             boxShadow: "0 -1px 2px 0 rgba(0, 0, 0, 0.05)",
           }}

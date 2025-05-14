@@ -22,10 +22,17 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 0.9rem;
   background-color: var(--color-base);
+}
+
+nav {
+  padding-top: env(safe-area-inset-top);
+}
+
+.footer {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Additional dark mode overrides can be added here */

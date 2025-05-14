@@ -139,6 +139,7 @@ export default function SessionControls({
       <div className="flex-none">
         <ActionButton
           action={clearTranslations}
+          disabled={translationSegments.length === 0}
           textDefault="Clear"
           textPending="Clearing..."
           icon={<Trash2 size={20} />}

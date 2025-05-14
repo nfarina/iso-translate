@@ -11,8 +11,8 @@ export function compressTranslationSegments(
   for (const segment of segments) {
     if (
       !lastSegment ||
-      (segment.timestamp > lastSegment.timestamp + 2500 &&
-        segment.speaker === lastSegment.speaker)
+      segment.timestamp > lastSegment.timestamp + 2500 ||
+      segment.speaker !== lastSegment.speaker
     ) {
       // It's been long enough or has a different speaker, so we
       // need a new segment.
