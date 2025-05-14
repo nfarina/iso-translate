@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocalStorage } from "../utils/useLocalStorage";
 import Button from "./Button";
 
-export default function ApiKeyInput() {
+export default function ApiKeyInput({ onBack }: { onBack?: () => void }) {
   const [apiKey, setApiKey] = useLocalStorage<string | null>(
     "App:apiKey",
     null,
@@ -11,11 +11,11 @@ export default function ApiKeyInput() {
 
   if (apiKey) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md mx-auto shadow-sm">
+      <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 w-md max-w-md mx-auto shadow-sm">
         <h2 className="text-lg font-bold mb-4 dark:text-white">
           API Key Configuration
         </h2>
-        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md">
+        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md mb-4">
           <p className="text-green-600 dark:text-green-400 font-semibold mb-2">
             OpenAI API Key is configured
           </p>
@@ -37,6 +37,16 @@ export default function ApiKeyInput() {
             </Button>
           </div>
         </div>
+        {onBack && (
+          <div className="flex justify-center">
+            <Button
+              onClick={onBack}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2"
+            >
+              Back to App
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -46,7 +56,7 @@ export default function ApiKeyInput() {
       <h2 className="text-lg font-bold mb-4 dark:text-white">
         API Key Configuration
       </h2>
-      <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
+      <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm mb-4">
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           Please enter your OpenAI API key to use Iso Translate. The key will be
           stored in your browser's local storage.

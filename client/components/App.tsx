@@ -156,7 +156,7 @@ export default function App() {
     if (editingApiKey) {
       return (
         <div className="flex-grow flex items-center justify-center h-full p-4">
-          <ApiKeyInput />
+          <ApiKeyInput onBack={() => setEditingApiKey(false)} />
         </div>
       );
     }
