@@ -25,45 +25,41 @@ export default function TranslationPanel({
       {isSessionActive || translationSegments.length > 0 ? (
         <div className="flex-grow flex flex-col h-full space-y-3 text-xl">
           {/* First language box */}
-          <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow overflow-y-auto">
-            <div className="flex flex-col-reverse space-y-reverse space-y-2">
-              {translationSegments.length === 0 && (
-                <p className="text-gray-500 dark:text-gray-400 italic">
-                  Waiting for {language1Name}...
+          <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow overflow-y-auto flex flex-col-reverse">
+            {translationSegments.length === 0 && (
+              <p className="text-gray-500 dark:text-gray-400 italic">
+                Waiting for {language1Name}...
+              </p>
+            )}
+            {[...translationSegments].reverse().map((segment) => (
+              <div key={`${segment.id}-lang1`} className="ml-1">
+                <p
+                  className="text-gray-700 dark:text-gray-300"
+                  style={{ color: getSpeakerColor(segment.speaker) }}
+                >
+                  {segment.translations[segment.language1.code] || "..."}
                 </p>
-              )}
-              {translationSegments.map((segment) => (
-                <div key={`${segment.id}-lang1`} className="ml-1">
-                  <p
-                    className="text-gray-700 dark:text-gray-300"
-                    style={{ color: getSpeakerColor(segment.speaker) }}
-                  >
-                    {segment.translations[segment.language1.code] || "..."}
-                  </p>
-                </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
           {/* Second language box */}
-          <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow overflow-y-auto">
-            <div className="flex flex-col-reverse space-y-reverse space-y-2">
-              {translationSegments.length === 0 && (
-                <p className="text-gray-500 dark:text-gray-400 italic">
-                  Waiting for {language2Name}...
+          <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow overflow-y-auto flex flex-col-reverse">
+            {translationSegments.length === 0 && (
+              <p className="text-gray-500 dark:text-gray-400 italic">
+                Waiting for {language2Name}...
+              </p>
+            )}
+            {[...translationSegments].reverse().map((segment) => (
+              <div key={`${segment.id}-lang2`} className="ml-1">
+                <p
+                  className="text-gray-700 dark:text-gray-300"
+                  style={{ color: getSpeakerColor(segment.speaker) }}
+                >
+                  {segment.translations[segment.language2.code] || "..."}
                 </p>
-              )}
-              {translationSegments.map((segment) => (
-                <div key={`${segment.id}-lang2`} className="ml-1">
-                  <p
-                    className="text-gray-700 dark:text-gray-300"
-                    style={{ color: getSpeakerColor(segment.speaker) }}
-                  >
-                    {segment.translations[segment.language2.code] || "..."}
-                  </p>
-                </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       ) : (
