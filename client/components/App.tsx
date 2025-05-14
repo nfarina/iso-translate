@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import { useOpenAISession } from "../hooks/useOpenAISession";
+import {
+  DEFAULT_LANGUAGE_1,
+  DEFAULT_LANGUAGE_2,
+  findLanguageByCode,
+  Language,
+} from "../utils/languages";
 import ApiKeyInput from "./ApiKeyInput";
 import Button from "./Button";
 import EventLog from "./EventLog";
+import LanguageSelector from "./LanguageSelector";
 import SessionControls from "./SessionControls";
 import TranslationPanel from "./TranslationPanel";
 import logo from "/assets/logo-horizontal.png";
-import LanguageSelector from "./LanguageSelector";
-import { Language, DEFAULT_LANGUAGE_1, DEFAULT_LANGUAGE_2, findLanguageByCode } from "../utils/languages";
 
 export default function App() {
   const [apiKey, setApiKey] = useState<string | null>(() =>
@@ -68,13 +73,14 @@ export default function App() {
 
   function renderHeader() {
     return (
-      <nav className="absolute top-0 left-0 right-0 h-16 flex items-center safe-top bg-white dark:bg-gray-800 shadow-sm z-10">
-        <div className="flex items-center gap-4 w-full mx-4">
+      <nav className="absolute top-0 left-0 right-0 h-16 flex items-center safe-top bg-white dark:bg-gray-800 shadow-sm z-10 overflow-x-auto">
+        <div className="flex items-center gap-4 w-full mx-4 min-w-max">
           <img
             style={{ width: "100px", height: "auto" }}
             src={logo}
             alt="Iso Translate Logo"
           />
+
           <div className="ml-auto flex items-center gap-2">
             <Button
               onClick={() => setShowEvents(!showEvents)}
@@ -172,43 +178,45 @@ export default function App() {
       return <EventLog events={events} />;
     }
     return (
-      <>
-        {!isSessionActive && (
-            <LanguageSelector
-                currentLanguage1={language1}
-                onLanguage1Change={setLanguage1}
-                currentLanguage2={language2}
-                onLanguage2Change={setLanguage2}
-                isSessionActive={isSessionActive}
-            />
-        )}
-        <TranslationPanel
-          translationSegments={translationSegments}
-          isSessionActive={isSessionActive}
-          language1Name={language1.name}
-          language2Name={language2.name}
-        />
-      </>
+      <TranslationPanel
+        translationSegments={translationSegments}
+        isSessionActive={isSessionActive}
+        language1Name={language1.name}
+        language2Name={language2.name}
+      />
     );
   }
 
   return (
     <main className="absolute inset-0 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
       {renderHeader()}
-      <div className="flex-grow overflow-y-auto p-4 pt-20">
-        {" "}
+      {apiKey && !editingApiKey && !isSessionActive && (
+        <div className="flex pt-16 pb-2 px-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600 shadow-sm">
+          <LanguageSelector
+            currentLanguage1={language1}
+            onLanguage1Change={setLanguage1}
+            currentLanguage2={language2}
+            onLanguage2Change={setLanguage2}
+            isSessionActive={isSessionActive}
+          />
+        </div>
+      )}
+      <div
+        className={`flex-grow overflow-y-auto p-4 ${
+          apiKey && !editingApiKey && !isSessionActive ? "pt-2" : "pt-20"
+        }`}
+      >
         {renderContentBody()}
       </div>
-      {apiKey &&
-        !editingApiKey && ( 
-          <div className="p-4 bg-gray-100 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-            <SessionControls
-              startSession={startSession}
-              stopSession={stopSession}
-              isSessionActive={isSessionActive}
-            />
-          </div>
-        )}
+      {apiKey && !editingApiKey && (
+        <div className="p-4 bg-gray-100 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+          <SessionControls
+            startSession={startSession}
+            stopSession={stopSession}
+            isSessionActive={isSessionActive}
+          />
+        </div>
+      )}
     </main>
   );
 }
