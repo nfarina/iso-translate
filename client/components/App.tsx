@@ -1,26 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import logo from "/assets/logo-horizontal.png";
-import EventLog from "./EventLog";
-import SessionControls from "./SessionControls";
-import TranslationPanel, { getSpeakerColor } from "./TranslationPanel";
 import { translatorSessionUpdate } from "../translatorTool.js";
 import ApiKeyInput from "./ApiKeyInput";
 import Button from "./Button";
+import EventLog from "./EventLog";
+import SessionControls from "./SessionControls";
+import TranslationPanel, { getSpeakerColor } from "./TranslationPanel";
+import logo from "/assets/logo-horizontal.png";
 
 export default function App() {
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [events, setEvents] = useState([]);
-  const [dataChannel, setDataChannel] = useState(null);
-  const peerConnection = useRef(null);
-  const audioElement = useRef(null);
-  const eventsRef = useRef(null);
+  const [events, setEvents] = useState<any[]>([]);
+  const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+  const audioElement = useRef<HTMLAudioElement | null>(null);
   const [apiKey, setApiKey] = useState(() =>
     localStorage?.getItem("openai_api_key"),
   );
   const [editingApiKey, setEditingApiKey] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
 
-  const handleKeySaved = (key) => {
+  const handleKeySaved = (key: string) => {
     setApiKey(key);
     localStorage.setItem("openai_api_key", key);
     setEditingApiKey(false);
@@ -53,7 +52,7 @@ export default function App() {
       // Set up to play remote audio from the model
       audioElement.current = document.createElement("audio");
       audioElement.current.autoplay = true;
-      pc.ontrack = (e) => (audioElement.current.srcObject = e.streams[0]);
+      pc.ontrack = (e) => (audioElement.current!.srcObject = e.streams[0]);
 
       // Add local audio track for microphone input in the browser
       const ms = await navigator.mediaDevices.getUserMedia({
@@ -84,7 +83,7 @@ export default function App() {
         type: "answer",
         sdp: await sdpResponse.text(),
       };
-      await pc.setRemoteDescription(answer);
+      await pc.setRemoteDescription(answer as RTCSessionDescriptionInit);
 
       peerConnection.current = pc;
     } catch (error) {
@@ -98,7 +97,7 @@ export default function App() {
       dataChannel.close();
     }
 
-    peerConnection.current.getSenders().forEach((sender) => {
+    peerConnection.current?.getSenders().forEach((sender) => {
       if (sender.track) {
         sender.track.stop();
       }
@@ -114,7 +113,7 @@ export default function App() {
   }
 
   // Send a message to the model
-  function sendClientEvent(message) {
+  function sendClientEvent(message: any) {
     if (dataChannel) {
       const timestamp = new Date().toLocaleTimeString();
       message.event_id = message.event_id || crypto.randomUUID();
@@ -136,7 +135,7 @@ export default function App() {
   }
 
   // Send a text message to the model
-  function sendTextMessage(message) {
+  function sendTextMessage(message: string) {
     const event = {
       type: "conversation.item.create",
       item: {
@@ -166,7 +165,7 @@ export default function App() {
         }
 
         setEvents((prev) => [event, ...prev]);
-        eventsRef.current.addEvent(event);
+        processEvent(event);
       });
 
       // Set session active when the data channel is opened
@@ -183,7 +182,7 @@ export default function App() {
   const [english, setEnglish] = useState("");
   const [chinese, setChinese] = useState("");
 
-  function processEvent(event) {
+  function processEvent(event: any) {
     if (
       event.type === "response.content_part.done" &&
       event.part.type === "text"
@@ -342,7 +341,6 @@ export default function App() {
                   english={english}
                   chinese={chinese}
                   isSessionActive={isSessionActive}
-                  eventsRef={eventsRef}
                 />
               </div>
             )}

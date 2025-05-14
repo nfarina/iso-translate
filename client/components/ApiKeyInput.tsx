@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
-import Button from './Button';
+import { useEffect, useState } from "react";
+import Button from "./Button";
 
-export default function ApiKeyInput({ onKeySaved }) {
-  const [apiKey, setApiKey] = useState('');
-  const [storedKey, setStoredKey] = useState(null);
+export default function ApiKeyInput({
+  onKeySaved,
+}: {
+  onKeySaved: (key: string) => void;
+}) {
+  const [apiKey, setApiKey] = useState("");
+  const [storedKey, setStoredKey] = useState<string | null>(null);
   const [showKey, setShowKey] = useState(false);
 
   useEffect(() => {
-    const keyFromStorage = localStorage.getItem('openai_api_key');
+    const keyFromStorage = localStorage.getItem("openai_api_key");
     if (keyFromStorage) {
       setStoredKey(keyFromStorage);
     }
@@ -15,9 +19,9 @@ export default function ApiKeyInput({ onKeySaved }) {
 
   const handleSaveKey = () => {
     if (apiKey.trim()) {
-      localStorage.setItem('openai_api_key', apiKey);
+      localStorage.setItem("openai_api_key", apiKey);
       setStoredKey(apiKey);
-      setApiKey(''); // Clear input field
+      setApiKey(""); // Clear input field
       if (onKeySaved) {
         onKeySaved(apiKey);
       }
@@ -25,28 +29,32 @@ export default function ApiKeyInput({ onKeySaved }) {
   };
 
   const handleClearKey = () => {
-    localStorage.removeItem('openai_api_key');
+    localStorage.removeItem("openai_api_key");
     setStoredKey(null);
     if (onKeySaved) {
-      onKeySaved(null); // Notify parent that key is cleared
+      onKeySaved(""); // Notify parent that key is cleared
     }
   };
 
   if (storedKey) {
     return (
       <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md mx-auto">
-        <h2 className="text-lg font-bold mb-4 dark:text-white">API Key Configuration</h2>
+        <h2 className="text-lg font-bold mb-4 dark:text-white">
+          API Key Configuration
+        </h2>
         <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
-          <p className="text-green-600 dark:text-green-400 font-semibold mb-2">OpenAI API Key is configured</p>
+          <p className="text-green-600 dark:text-green-400 font-semibold mb-2">
+            OpenAI API Key is configured
+          </p>
           <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 break-all font-mono">
-            {showKey ? storedKey : '••••••••••••••••••••'}
+            {showKey ? storedKey : "••••••••••••••••••••"}
           </p>
           <div className="flex gap-2 justify-center mb-4">
             <Button
               onClick={() => setShowKey(!showKey)}
               className="bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 !text-gray-700 dark:!text-gray-300 text-xs border border-gray-300 dark:border-gray-600"
             >
-              {showKey ? 'Hide' : 'Show'} Key
+              {showKey ? "Hide" : "Show"} Key
             </Button>
             <Button
               onClick={handleClearKey}
@@ -62,10 +70,13 @@ export default function ApiKeyInput({ onKeySaved }) {
 
   return (
     <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md mx-auto">
-      <h2 className="text-lg font-bold mb-4 dark:text-white">API Key Configuration</h2>
+      <h2 className="text-lg font-bold mb-4 dark:text-white">
+        API Key Configuration
+      </h2>
       <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-          Please enter your OpenAI API key to use Iso Translate. The key will be stored in your browser's local storage.
+          Please enter your OpenAI API key to use Iso Translate. The key will be
+          stored in your browser's local storage.
         </p>
         <input
           type="text"
@@ -85,4 +96,4 @@ export default function ApiKeyInput({ onKeySaved }) {
       </div>
     </div>
   );
-} 
+}

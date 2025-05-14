@@ -1,9 +1,13 @@
-import { useEffect, useState, useImperativeHandle, useRef } from "react";
+import { useEffect } from "react";
 
 export default function TranslationPanel({
   isSessionActive,
   english,
   chinese,
+}: {
+  isSessionActive: boolean;
+  english: string;
+  chinese: string;
 }) {
   // const mostRecentEvent = events[0];
   // console.log("mostRecentEvent", mostRecentEvent);
@@ -69,7 +73,7 @@ export default function TranslationPanel({
   );
 }
 
-export function getSpeakerColor(speaker) {
+export function getSpeakerColor(speaker: number) {
   const colors = [
     "#4A90E2",
     "#50E3C2",

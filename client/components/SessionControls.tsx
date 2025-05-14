@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { CloudLightning, CloudOff, MessageSquare } from "react-feather";
+import { CloudLightning, CloudOff } from "react-feather";
 import Button from "./Button";
 
-function SessionStopped({ startSession }) {
+function SessionStopped({ startSession }: { startSession: () => void }) {
   const [isActivating, setIsActivating] = useState(false);
 
   function handleStartSession() {
@@ -25,7 +25,13 @@ function SessionStopped({ startSession }) {
   );
 }
 
-function SessionActive({ stopSession, sendTextMessage }) {
+function SessionActive({
+  stopSession,
+  sendTextMessage,
+}: {
+  stopSession: () => void;
+  sendTextMessage: (message: string) => void;
+}) {
   const [message, setMessage] = useState("");
 
   function handleSendClientEvent() {
@@ -35,7 +41,7 @@ function SessionActive({ stopSession, sendTextMessage }) {
 
   return (
     <div className="flex items-center justify-center w-full h-full gap-4">
-      <input
+      {/* <input
         onKeyDown={(e) => {
           if (e.key === "Enter" && message.trim()) {
             handleSendClientEvent();
@@ -57,7 +63,7 @@ function SessionActive({ stopSession, sendTextMessage }) {
         className="bg-blue-400 dark:bg-blue-500"
       >
         send text
-      </Button>
+      </Button> */}
       <Button onClick={stopSession} icon={<CloudOff height={16} />}>
         disconnect
       </Button>
@@ -72,15 +78,20 @@ export default function SessionControls({
   sendTextMessage,
   serverEvents,
   isSessionActive,
+}: {
+  startSession: () => void;
+  stopSession: () => void;
+  sendClientEvent: (message: any) => void;
+  sendTextMessage: (message: string) => void;
+  serverEvents: any[];
+  isSessionActive: boolean;
 }) {
   return (
     <div className="flex gap-4 h-full rounded-md">
       {isSessionActive ? (
         <SessionActive
           stopSession={stopSession}
-          sendClientEvent={sendClientEvent}
           sendTextMessage={sendTextMessage}
-          serverEvents={serverEvents}
         />
       ) : (
         <SessionStopped startSession={startSession} />
