@@ -10,6 +10,7 @@ export const LANGUAGES: Language[] = [
   { name: "French", code: "fr" },
   { name: "German", code: "de" },
   { name: "Chinese", code: "zh" }, // Using "zh" for simplicity, ensure OpenAI compatibility
+  { name: "Cantonese", code: "yue" },
   { name: "Korean", code: "ko" },
   { name: "Italian", code: "it" },
   { name: "Portuguese", code: "pt" },
