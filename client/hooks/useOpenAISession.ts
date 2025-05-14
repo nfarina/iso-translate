@@ -1,27 +1,36 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { translatorSessionUpdate } from "../translatorTool.js";
+import { getTranslatorSessionUpdate } from "../translatorTool.js";
+import { Language } from "../utils/languages.js";
 
-// Define a basic structure for what we expect from the parsed JSON
-interface ParsedTranslation {
+// Represents the expected structure from the AI after JSON.parse
+// It will have dynamic keys based on language codes.
+interface ParsedTranslationPayload {
   speaker: number;
-  english: string;
-  japanese: string;
+  [langCode: string]: string | number; // Accommodates speaker and dynamic lang codes as strings
 }
 
-export interface TranslationSegment extends ParsedTranslation {
+export interface TranslationSegment {
   id: string;
+  speaker: number;
+  translations: Record<string, string>; // Stores translations as { "en": "Hello", "es": "Hola" }
+  language1: Language; // The first language selected by the user
+  language2: Language; // The second language selected by the user
 }
 
-// Basic event structure, can be expanded later
 interface OpenAIEvent {
   type: string;
   timestamp?: string;
   event_id?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any; // Allow other properties
+  [key: string]: any;
+  _direction?: "sent" | "received" | "internal";
 }
 
-export function useOpenAISession(apiKey: string | null) {
+export function useOpenAISession(
+  apiKey: string | null,
+  currentLanguage1: Language,
+  currentLanguage2: Language,
+) {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [events, setEvents] = useState<OpenAIEvent[]>([]);
   const [translationSegments, setTranslationSegments] = useState<
@@ -31,7 +40,7 @@ export function useOpenAISession(apiKey: string | null) {
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
-  const lastTextRef = useRef(""); // For de-duping text events from OpenAI
+  const lastTextRef = useRef("");
 
   const storeEvent = useCallback(
     (
@@ -54,7 +63,6 @@ export function useOpenAISession(apiKey: string | null) {
             event_id: `err_${crypto.randomUUID()}`,
             data: eventDataOrObject,
             error: (error as Error).message,
-            _direction: direction,
           };
         }
       } else {
@@ -65,10 +73,9 @@ export function useOpenAISession(apiKey: string | null) {
         event.timestamp = new Date().toLocaleTimeString();
       }
       if (!event.event_id) {
-        // Assign a generic event_id if one doesn't exist, useful for internally generated log messages
         event.event_id = `${direction}_${crypto.randomUUID()}`;
       }
-      event._direction = direction; // For debugging aid in EventLog if needed
+      event._direction = direction;
       setEvents((prev) => [event, ...prev]);
       return event;
     },
@@ -78,13 +85,13 @@ export function useOpenAISession(apiKey: string | null) {
   const processIncomingEventText = useCallback(
     (text: string) => {
       if (text === lastTextRef.current) {
-        return; // Skip duplicate text
+        return;
       }
       lastTextRef.current = text;
 
-      let parsed: ParsedTranslation | null = null;
+      let parsed: ParsedTranslationPayload | null = null;
       try {
-        parsed = JSON.parse(text) as ParsedTranslation;
+        parsed = JSON.parse(text) as ParsedTranslationPayload;
       } catch (error) {
         console.error(
           "Error parsing translation JSON from event.part.text:",
@@ -106,34 +113,42 @@ export function useOpenAISession(apiKey: string | null) {
       if (
         parsed &&
         typeof parsed.speaker === "number" &&
-        typeof parsed.english === "string" &&
-        typeof parsed.japanese === "string"
+        parsed[currentLanguage1.code] !== undefined && // Check if expected lang codes are present
+        parsed[currentLanguage2.code] !== undefined
       ) {
+        const { speaker, ...langTranslations } = parsed;
         const newSegment: TranslationSegment = {
-          ...parsed,
           id: crypto.randomUUID(),
+          speaker: speaker as number,
+          translations: langTranslations as Record<string, string>,
+          language1: currentLanguage1,
+          language2: currentLanguage2,
         };
         setTranslationSegments((prev) => [...prev, newSegment]);
       } else {
         console.warn(
-          "Parsed translation object is not in the expected format:",
+          "Parsed translation object is not in the expected format or missing language keys:",
           parsed,
+          "Expected codes:",
+          currentLanguage1.code,
+          currentLanguage2.code,
         );
         storeEvent(
           {
             type: "warn_invalid_translation_format",
             payload: parsed,
+            expectedCodes: [currentLanguage1.code, currentLanguage2.code],
           },
           "internal",
         );
       }
     },
-    [storeEvent],
+    [storeEvent, currentLanguage1, currentLanguage2], // Add language dependencies
   );
 
   const sendClientEvent = useCallback(
     (
-      message: Omit<OpenAIEvent, "timestamp" | "event_id"> & {
+      message: Omit<OpenAIEvent, "timestamp" | "event_id" | "_direction"> & {
         event_id?: string;
       },
     ) => {
@@ -143,12 +158,12 @@ export function useOpenAISession(apiKey: string | null) {
       ) {
         const eventToSend = { ...message };
         if (!eventToSend.event_id) {
-          eventToSend.event_id = `c_${crypto.randomUUID()}`; // Mark as client-originated
+          eventToSend.event_id = `c_${crypto.randomUUID()}`;
         }
 
         const messageString = JSON.stringify(eventToSend);
         dataChannelRef.current.send(messageString);
-        storeEvent(eventToSend, "sent"); // Log the object we intended to send
+        storeEvent(eventToSend, "sent");
       } else {
         console.error(
           "Failed to send message - data channel not available or not open",
@@ -181,9 +196,19 @@ export function useOpenAISession(apiKey: string | null) {
       return;
     }
 
-    console.log("Attempting to start session...");
-    storeEvent({ type: "info_session_starting" }, "internal");
-    setIsSessionActive(false); // Reset states
+    console.log(
+      "Attempting to start session with languages:",
+      currentLanguage1.name,
+      currentLanguage2.name,
+    );
+    storeEvent(
+      {
+        type: "info_session_starting",
+        languages: [currentLanguage1.name, currentLanguage2.name],
+      },
+      "internal",
+    );
+    setIsSessionActive(false);
     setEvents([]);
     lastTextRef.current = "";
 
@@ -235,8 +260,6 @@ export function useOpenAISession(apiKey: string | null) {
       if (!audioElementRef.current) {
         audioElementRef.current = document.createElement("audio");
         audioElementRef.current.autoplay = true;
-        // Optionally append to body if needed for controls or debugging, though not strictly necessary for autoplay
-        // document.body.appendChild(audioElementRef.current);
       }
       pc.ontrack = (e) => {
         if (audioElementRef.current) {
@@ -258,16 +281,18 @@ export function useOpenAISession(apiKey: string | null) {
         console.log("Data channel opened.");
         storeEvent({ type: "info_datachannel_open" }, "internal");
         setIsSessionActive(true);
-        // Clear events again, ensuring a fresh start for the active session
         setEvents((prev) =>
           prev.filter(
             (e) =>
               e.type === "info_datachannel_open" ||
               e.type === "info_session_starting",
           ),
-        ); // Keep initial logs
+        );
         lastTextRef.current = "";
-        sendClientEvent(translatorSessionUpdate);
+        // Send the dynamically generated translator session update
+        sendClientEvent(
+          getTranslatorSessionUpdate(currentLanguage1, currentLanguage2),
+        );
       };
 
       dc.onmessage = (e) => {
@@ -284,18 +309,10 @@ export function useOpenAISession(apiKey: string | null) {
       dc.onclose = () => {
         console.log("Data channel closed.");
         storeEvent({ type: "info_datachannel_closed" }, "internal");
-        // setIsSessionActive(false); // This state change is typically managed by stopSession or connection failure
       };
       dc.onerror = (err) => {
         console.error("Data channel error:", err);
         storeEvent({ type: "error_datachannel", detail: err }, "internal");
-      };
-
-      pc.onicecandidate = (event) => {
-        // Can be useful for debugging WebRTC connection issues
-        // if (event.candidate) {
-        //   console.log("ICE candidate:", event.candidate);
-        // }
       };
 
       pc.onconnectionstatechange = () => {
@@ -312,14 +329,8 @@ export function useOpenAISession(apiKey: string | null) {
           pc.connectionState === "disconnected" ||
           pc.connectionState === "closed"
         ) {
-          // If the connection drops unexpectedly, ensure we reflect this
           if (isSessionActive) {
-            // Only call stop if it was active, to avoid loops if stopSession itself causes this.
-            // Call stopSession to clean up properly.
-            // This might be redundant if stopSession is called elsewhere, but good for unexpected drops.
-            // stopSession(); // Careful with direct calls here, might lead to race conditions.
-            // Better to just set isSessionActive false, stopSession should handle cleanup.
-            setIsSessionActive(false);
+            setIsSessionActive(false); // Rely on stopSession for full cleanup, this handles unexpected drops
           }
         }
       };
@@ -369,11 +380,8 @@ export function useOpenAISession(apiKey: string | null) {
       console.log(
         "Session negotiation complete. Waiting for data channel to open.",
       );
-      // isSessionActive will be set true by dc.onopen
     } catch (error) {
       console.error("Failed to start session:", error);
-      // storeEvent already called for specific errors, add a general one if missed
-      // storeEvent({ type: "error_session_start_critical", message: (error as Error).message }, "internal");
       setIsSessionActive(false);
       if (peerConnectionRef.current) {
         peerConnectionRef.current.close();
@@ -387,6 +395,8 @@ export function useOpenAISession(apiKey: string | null) {
     sendClientEvent,
     storeEvent,
     processIncomingEventText,
+    currentLanguage1, // Add language dependencies
+    currentLanguage2,
   ]);
 
   const stopSession = useCallback(() => {
@@ -425,26 +435,17 @@ export function useOpenAISession(apiKey: string | null) {
       stream.getTracks().forEach((track) => track.stop());
       audioElementRef.current.srcObject = null;
     }
-    // audioElementRef.current can be kept for next session
-    // If you want to remove it fully:
-    // if (audioElementRef.current && audioElementRef.current.parentNode) {
-    //   audioElementRef.current.parentNode.removeChild(audioElementRef.current);
-    //   audioElementRef.current = null;
-    // }
 
     setIsSessionActive(false);
     lastTextRef.current = "";
-    // setEvents([]); // Optionally clear events, or keep them for review
     console.log("Session stopped.");
     storeEvent({ type: "info_session_stopped" }, "internal");
   }, [storeEvent]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       console.log("useOpenAISession unmounting, ensuring session is stopped.");
       stopSession();
-      // Fully remove audio element if it was added to DOM and should be cleaned up
       if (audioElementRef.current && audioElementRef.current.parentNode) {
         audioElementRef.current.parentNode.removeChild(audioElementRef.current);
         audioElementRef.current = null;
@@ -458,6 +459,6 @@ export function useOpenAISession(apiKey: string | null) {
     translationSegments,
     startSession,
     stopSession,
-    sendClientEvent, // Expose if other parts of app need to send custom events
+    sendClientEvent,
   };
 }

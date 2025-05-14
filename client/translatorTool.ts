@@ -1,47 +1,47 @@
-export const translatorSessionUpdate = {
-  type: "session.update",
-  session: {
-    tools: [
-      {
-        type: "function",
-        name: "transcribe",
-        description:
-          "Return the speaker's words translated into English and Japanese. Never respond any other way.",
-        parameters: {
-          type: "object",
-          properties: {
-            speaker: {
-              type: "number",
-              description:
-                "A unique number representing the voice of the speaker, to distinguish them from other speakers in the UI. Multiple speakers may be speaking the same language and should have their own numbers.",
+import { Language } from "./utils/languages";
+
+export function getTranslatorSessionUpdate(lang1: Language, lang2: Language) {
+  return {
+    type: "session.update",
+    session: {
+      tools: [
+        {
+          type: "function",
+          name: "transcribe",
+          description: `Return the speaker's words translated into ${lang1.name} and ${lang2.name}. Never respond any other way.`,
+          parameters: {
+            type: "object",
+            properties: {
+              speaker: {
+                type: "number",
+                description:
+                  "A unique number representing the voice of the speaker, to distinguish them from other speakers in the UI. Multiple speakers may be speaking the same language and should have their own numbers.",
+              },
+              [lang1.code]: {
+                type: "string",
+                description: `The entire utterance, fully translated (or transcribed) into ${lang1.name}.`,
+              },
+              [lang2.code]: {
+                type: "string",
+                description: `The entire utterance, fully translated (or transcribed) into ${lang2.name}.`,
+              },
             },
-            english: {
-              type: "string",
-              description:
-                "The entire utterance, fully translated (or transcribed) into English.",
-            },
-            japanese: {
-              type: "string",
-              description:
-                "The entire utterance, fully translated (or transcribed) into Japanese.",
-            },
+            required: ["speaker", lang1.code, lang2.code],
           },
-          required: ["speaker", "english", "japanese"],
         },
+      ],
+      tool_choice: { type: "function", name: "transcribe" },
+      turn_detection: {
+        type: "server_vad",
+        interrupt_response: false,
       },
-    ],
-    // Force every response to be a call to this function
-    tool_choice: { type: "function", name: "transcribe" },
-    turn_detection: {
-      type: "server_vad",
-      interrupt_response: false,
+      instructions: `
+        You are an interpreter named Iso. 
+        When you hear speech, translate it into both ${lang1.name} and ${lang2.name}.
+        Call the "transcribe" function with a JSON object like: { "speaker": <speaker_id_number>, "${lang1.code}": "<text in ${lang1.name}>", "${lang2.code}": "<text in ${lang2.name}>" }.
+        Call this function periodically as speech is heard, don't wait for a full utterance to be spoken.
+        Do NOT speak, explain, or output anything else.
+      `,
     },
-    instructions: `
-      You are an interpreter named Iso. 
-      When you hear speech, translate it into both English and Japanese and call the
-      "transcribe" function with { "speaker": "<number representing which voice is speaking>", "english": "<text>", "japanese": "<text>" }.
-      Call this function periodically as speech is heard, don't wait for a full utterance to be spoken.
-      Do NOT speak, explain, or output anything else.
-    `,
-  },
-};
+  };
+}

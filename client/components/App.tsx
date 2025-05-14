@@ -6,6 +6,8 @@ import EventLog from "./EventLog";
 import SessionControls from "./SessionControls";
 import TranslationPanel from "./TranslationPanel";
 import logo from "/assets/logo-horizontal.png";
+import LanguageSelector from "./LanguageSelector";
+import { Language, DEFAULT_LANGUAGE_1, DEFAULT_LANGUAGE_2, findLanguageByCode } from "../utils/languages";
 
 export default function App() {
   const [apiKey, setApiKey] = useState<string | null>(() =>
@@ -14,7 +16,18 @@ export default function App() {
       : null,
   );
   const [editingApiKey, setEditingApiKey] = useState(false);
-  const [showEvents, setShowEvents] = useState(false); // Default to showing translations
+  const [showEvents, setShowEvents] = useState(false);
+
+  const [language1, setLanguage1] = useState<Language>(() => {
+    if (typeof window === "undefined") return DEFAULT_LANGUAGE_1;
+    const storedLang1Code = localStorage.getItem("selected_language_1_code");
+    return findLanguageByCode(storedLang1Code) || DEFAULT_LANGUAGE_1;
+  });
+  const [language2, setLanguage2] = useState<Language>(() => {
+    if (typeof window === "undefined") return DEFAULT_LANGUAGE_2;
+    const storedLang2Code = localStorage.getItem("selected_language_2_code");
+    return findLanguageByCode(storedLang2Code) || DEFAULT_LANGUAGE_2;
+  });
 
   const {
     isSessionActive,
@@ -22,11 +35,21 @@ export default function App() {
     translationSegments,
     startSession,
     stopSession,
-    // sendClientEvent, // Exposed by hook, not directly used by App UI
-  } = useOpenAISession(apiKey);
+  } = useOpenAISession(apiKey, language1, language2); // Pass selected languages
 
   useEffect(() => {
-    // If API key is removed while a session is active, stop the session.
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selected_language_1_code", language1.code);
+    }
+  }, [language1]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selected_language_2_code", language2.code);
+    }
+  }, [language2]);
+
+  useEffect(() => {
     if (!apiKey && isSessionActive) {
       stopSession();
     }
@@ -39,7 +62,6 @@ export default function App() {
       localStorage.setItem("openai_api_key", newApiKey);
     } else {
       localStorage.removeItem("openai_api_key");
-      // Effect above will handle stopping session if it was active
     }
     setEditingApiKey(false);
   };
@@ -81,7 +103,7 @@ export default function App() {
             <Button
               onClick={() => {
                 setEditingApiKey(!editingApiKey);
-                if (showEvents && !editingApiKey) setShowEvents(false); // Switch to translation view if opening API key editor from events
+                if (showEvents && !editingApiKey) setShowEvents(false);
               }}
               className={`p-2 ${
                 editingApiKey
@@ -150,10 +172,23 @@ export default function App() {
       return <EventLog events={events} />;
     }
     return (
-      <TranslationPanel
-        translationSegments={translationSegments}
-        isSessionActive={isSessionActive}
-      />
+      <>
+        {!isSessionActive && (
+            <LanguageSelector
+                currentLanguage1={language1}
+                onLanguage1Change={setLanguage1}
+                currentLanguage2={language2}
+                onLanguage2Change={setLanguage2}
+                isSessionActive={isSessionActive}
+            />
+        )}
+        <TranslationPanel
+          translationSegments={translationSegments}
+          isSessionActive={isSessionActive}
+          language1Name={language1.name}
+          language2Name={language2.name}
+        />
+      </>
     );
   }
 
@@ -162,11 +197,10 @@ export default function App() {
       {renderHeader()}
       <div className="flex-grow overflow-y-auto p-4 pt-20">
         {" "}
-        {/* pt-20 = 16 (header) + 4 (padding) */}
         {renderContentBody()}
       </div>
       {apiKey &&
-        !editingApiKey && ( // Only show session controls if API key is set and not editing it
+        !editingApiKey && ( 
           <div className="p-4 bg-gray-100 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
             <SessionControls
               startSession={startSession}

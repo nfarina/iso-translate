@@ -5,18 +5,20 @@ import { getSpeakerColor } from "../utils/colorUtils";
 interface TranslationPanelProps {
   isSessionActive: boolean;
   translationSegments: TranslationSegment[];
+  language1Name: string;
+  language2Name: string;
 }
 
 export default function TranslationPanel({
   isSessionActive,
   translationSegments,
+  language1Name, // Added to display correct placeholder
+  language2Name,  // Added to display correct placeholder
 }: TranslationPanelProps) {
-  // The hook now clears translationSegments on stopSession and on startSession.
-  // This useEffect might be redundant unless specific UI reset logic is needed here.
+
   useEffect(() => {
-    if (!isSessionActive) {
-      // If there was local state here to be cleared, this would be the place.
-    }
+    // The hook now clears translationSegments on stopSession and on startSession.
+    // No specific local state to clear here based on isSessionActive for now.
   }, [isSessionActive]);
 
   return (
@@ -38,10 +40,12 @@ export default function TranslationPanel({
                 Speaker {segment.speaker + 1}
               </p>
               <p className="text-gray-700 dark:text-gray-300 ml-1">
-                <span className="font-semibold">EN:</span> {segment.english}
+                <span className="font-semibold">{segment.language1.name}:</span>{" "}
+                {segment.translations[segment.language1.code] || "..."}
               </p>
               <p className="text-gray-700 dark:text-gray-300 ml-1">
-                <span className="font-semibold">JP:</span> {segment.japanese}
+                <span className="font-semibold">{segment.language2.name}:</span>{" "}
+                {segment.translations[segment.language2.code] || "..."}
               </p>
             </div>
           ))}
@@ -50,8 +54,8 @@ export default function TranslationPanel({
         <div className="flex items-center justify-center h-full">
           <p className="text-gray-500 dark:text-gray-400 italic text-center">
             {isSessionActive
-              ? "Listening... Speak in English or Japanese to see translations."
-              : "Start a session to begin translation."}
+              ? `Listening... Speak to see translations into ${language1Name} and ${language2Name}.`
+              : "Select languages and start a session to begin translation."}
           </p>
         </div>
       )}
