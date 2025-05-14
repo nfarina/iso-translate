@@ -11,6 +11,13 @@ https://tailwindcss.com/docs/preflight
   --color-highlight: #ff80ff;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-base: #1a1a1a;
+    --color-highlight: #ff80ff;
+  }
+}
+
 html,
 body {
   height: 100%;
@@ -22,3 +29,5 @@ body {
   font-size: 0.9rem;
   background-color: var(--color-base);
 }
+
+/* Additional dark mode overrides can be added here */

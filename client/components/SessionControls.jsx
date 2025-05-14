@@ -43,7 +43,7 @@ function SessionActive({ stopSession, sendTextMessage }) {
         }}
         type="text"
         placeholder="send a text message..."
-        className="border border-gray-200 rounded-full p-4 flex-1"
+        className="border border-gray-200 dark:border-gray-600 rounded-full p-4 flex-1 dark:bg-gray-800 dark:text-white"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
       />
@@ -54,7 +54,7 @@ function SessionActive({ stopSession, sendTextMessage }) {
           }
         }}
         icon={<MessageSquare height={16} />}
-        className="bg-blue-400"
+        className="bg-blue-400 dark:bg-blue-500"
       >
         send text
       </Button>

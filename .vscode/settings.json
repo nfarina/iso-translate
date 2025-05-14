@@ -1,0 +1,16 @@
+// @chatwing
+{
+  // Use our local version of TypeScript.
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  // Turn on auto-format by default.
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.codeActionsOnSave": ["source.organizeImports"]
+  },
+  "[typescript]": {
+    "editor.codeActionsOnSave": ["source.organizeImports"]
+  },
+  "[typescriptreact]": {
+    "editor.codeActionsOnSave": ["source.organizeImports"]
+  }
+}
