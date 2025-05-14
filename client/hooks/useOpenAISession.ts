@@ -94,12 +94,12 @@ export function useOpenAISession(
       try {
         parsed = JSON.parse(text) as ParsedTranslationPayload;
       } catch (error) {
-        console.error(
-          "Error parsing translation JSON from event.part.text:",
-          error,
-          "Text was:",
-          text,
-        );
+        // console.error(
+        //   "Error parsing translation JSON from event.part.text:",
+        //   error,
+        //   "Text was:",
+        //   text,
+        // );
         storeEvent(
           {
             type: "error_parsing_translation",
@@ -126,17 +126,6 @@ export function useOpenAISession(
           language2: currentLanguage2,
         };
         setTranslationSegments((prev) => {
-          // First build a giant string of all language1 translations thus far.
-          const language1Translations = prev.map(
-            (segment) => segment.translations[currentLanguage1.code],
-          );
-          console.log(
-            `language1Translations: "${language1Translations.join("")}"`,
-          );
-          console.log(
-            `newSegment: "${newSegment.translations[currentLanguage1.code]}"`,
-          );
-
           return [...prev, newSegment];
         });
       } else {
@@ -314,6 +303,7 @@ export function useOpenAISession(
         if (
           event &&
           event.type === "response.content_part.done" &&
+          event.output_index === 0 &&
           event.part?.type === "text"
         ) {
           processIncomingEventText(event.part.text);
