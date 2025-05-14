@@ -1,14 +1,15 @@
-import { join, dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
 const path = fileURLToPath(import.meta.url);
 
 export default {
   root: join(dirname(path), "client"),
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   build: {
-    outDir: '../dist',
-    emptyOutDir: true
-  }
+    outDir: "../dist",
+    emptyOutDir: true,
+  },
 };

@@ -37,7 +37,7 @@ export default function LanguageSelector({
         value={currentLanguage1.code}
         onChange={handleLang1Change}
         disabled={isSessionActive}
-        className="px-1 py-1 text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white disabled:opacity-50"
+        className="px-1 py-1 text-sm rounded-md focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white disabled:opacity-50"
       >
         {LANGUAGES.map((lang) => (
           <option key={lang.code} value={lang.code}>
@@ -50,7 +50,7 @@ export default function LanguageSelector({
         value={currentLanguage2.code}
         onChange={handleLang2Change}
         disabled={isSessionActive}
-        className="px-1 py-1 text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white disabled:opacity-50"
+        className="px-1 py-1 text-sm rounded-md focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white disabled:opacity-50"
       >
         {LANGUAGES.map((lang) => (
           <option key={lang.code} value={lang.code}>

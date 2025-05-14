@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { Code, Globe, Key } from "react-feather";
 import { useOpenAISession } from "../hooks/useOpenAISession";
 import {
@@ -70,7 +70,7 @@ export default function App() {
 
   function renderHeader() {
     return (
-      <nav className="flex flex-col safe-top bg-white dark:bg-gray-800 shadow-sm z-10">
+      <nav className="flex flex-col safe-top bg-white dark:bg-gray-800 shadow-xs z-10">
         <div className="flex items-center gap-4 mx-4 min-w-max">
           <img
             style={{ width: "100px", height: "auto" }}
@@ -79,7 +79,11 @@ export default function App() {
           />
           <div className="ml-auto flex items-center gap-2">
             <Button
-              onClick={() => setShowLanguageSelector(!showLanguageSelector)}
+              onClick={() =>
+                startTransition(() => {
+                  setShowLanguageSelector(!showLanguageSelector);
+                })
+              }
               className={`p-1 px-2 ${
                 showLanguageSelector
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
@@ -127,7 +131,7 @@ export default function App() {
           !editingApiKey &&
           !isSessionActive &&
           showLanguageSelector && (
-            <div className="flex pb-2 px-2 bg-white dark:bg-gray-800 shadow-sm">
+            <div className="flex pb-2 px-2 bg-white dark:bg-gray-800 shadow-xs">
               <LanguageSelector
                 currentLanguage1={language1}
                 onLanguage1Change={setLanguage1}
@@ -171,8 +175,8 @@ export default function App() {
       <TranslationPanel
         translationSegments={translationSegments}
         isSessionActive={isSessionActive}
-        language1Name={language1.name}
-        language2Name={language2.name}
+        language1={language1}
+        language2={language2}
       />
     );
   }
@@ -180,6 +184,7 @@ export default function App() {
   return (
     <main className="flex flex-col min-h-screen dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {renderHeader()}
+
       <div className="h-0 flex-grow p-3 flex flex-col">
         {renderContentBody()}
       </div>

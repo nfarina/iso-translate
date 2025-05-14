@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { TranslationSegment } from "../hooks/useOpenAISession";
 import { getSpeakerColor, getSpeakerColorDark } from "../utils/colorUtils";
+import { Language } from "../utils/languages";
+import { compressTranslationSegments } from "../utils/merging";
 
 interface TranslationPanelProps {
   isSessionActive: boolean;
   translationSegments: TranslationSegment[];
-  language1Name: string;
-  language2Name: string;
+  language1: Language;
+  language2: Language;
 }
 
 export default function TranslationPanel({
   isSessionActive,
   translationSegments,
-  language1Name,
-  language2Name,
+  language1,
+  language2,
 }: TranslationPanelProps) {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -32,64 +34,54 @@ export default function TranslationPanel({
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  // The hook now clears translationSegments on stopSession and on startSession.
-  // No specific local state to clear here based on isSessionActive for now.
+  function renderTranslations(language: Language) {
+    const compressedSegments = compressTranslationSegments(translationSegments);
+
+    return [...compressedSegments].reverse().map((segment) => (
+      <div key={`${segment.id}-lang1`} className="ml-1">
+        <p
+          className="text-gray-700 dark:text-gray-300"
+          style={{
+            color: isDarkMode
+              ? getSpeakerColorDark(segment.speaker)
+              : getSpeakerColor(segment.speaker),
+          }}
+        >
+          {segment.translations[language.code] || "..."}
+        </p>
+      </div>
+    ));
+  }
 
   return (
     <>
       {isSessionActive || translationSegments.length > 0 ? (
         <div className="flex-grow flex flex-col h-full space-y-3 text-xl">
           {/* First language box */}
-          <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow overflow-y-auto flex flex-col-reverse">
+          <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow-sm overflow-y-auto flex flex-col-reverse">
             {translationSegments.length === 0 && (
               <p className="text-gray-500 dark:text-gray-400 italic">
-                Waiting for {language1Name}...
+                Waiting for {language1.name}...
               </p>
             )}
-            {[...translationSegments].reverse().map((segment) => (
-              <div key={`${segment.id}-lang1`} className="ml-1">
-                <p
-                  className="text-gray-700 dark:text-gray-300"
-                  style={{
-                    color: isDarkMode
-                      ? getSpeakerColorDark(segment.speaker)
-                      : getSpeakerColor(segment.speaker),
-                  }}
-                >
-                  {segment.translations[segment.language1.code] || "..."}
-                </p>
-              </div>
-            ))}
+            {renderTranslations(language1)}
           </div>
 
           {/* Second language box */}
-          <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow overflow-y-auto flex flex-col-reverse">
+          <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow-sm overflow-y-auto flex flex-col-reverse">
             {translationSegments.length === 0 && (
               <p className="text-gray-500 dark:text-gray-400 italic">
-                Waiting for {language2Name}...
+                Waiting for {language2.name}...
               </p>
             )}
-            {[...translationSegments].reverse().map((segment) => (
-              <div key={`${segment.id}-lang2`} className="ml-1">
-                <p
-                  className="text-gray-700 dark:text-gray-300"
-                  style={{
-                    color: isDarkMode
-                      ? getSpeakerColorDark(segment.speaker)
-                      : getSpeakerColor(segment.speaker),
-                  }}
-                >
-                  {segment.translations[segment.language2.code] || "..."}
-                </p>
-              </div>
-            ))}
+            {renderTranslations(language2)}
           </div>
         </div>
       ) : (
         <div className="flex-grow flex items-center justify-center h-full">
           <p className="text-gray-500 dark:text-gray-400 italic text-center">
             {isSessionActive
-              ? `Listening... Speak to see translations into ${language1Name} and ${language2Name}.`
+              ? `Listening... Speak to see translations into ${language1.name} and ${language2.name}.`
               : "Select languages and start listening to begin translation."}
           </p>
         </div>

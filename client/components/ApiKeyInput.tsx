@@ -56,7 +56,7 @@ export default function ApiKeyInput() {
           value={apiKey || ""}
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="Enter your OpenAI API key"
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-4 dark:bg-gray-700 dark:text-white"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 mb-4 dark:bg-gray-700 dark:text-white"
           autoComplete="off"
         />
         <Button

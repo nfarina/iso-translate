@@ -2,6 +2,11 @@
 dist/
 dist-ssr
 
+## Yarn
+
+node_modules
+.yarn/
+
 # dependencies
 node_modules/
 

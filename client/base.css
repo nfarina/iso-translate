@@ -2,9 +2,7 @@
 @tailwind base; adds base styles to all elements:
 https://tailwindcss.com/docs/preflight
 */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --color-base: #efefef;
