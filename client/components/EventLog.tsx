@@ -1,68 +1,66 @@
+import { useState } from "react";
+import { ArrowDown, ArrowUp } from "react-feather";
+
 function Event({ event, timestamp }: { event: any; timestamp: number }) {
-  if (!event) {
-    return;
-  }
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Format timestamp
-  const date = new Date(timestamp);
-  const formattedTime = date.toLocaleTimeString();
-
-  // Create JSON view
-  const formattedJson = JSON.stringify(event, null, 2);
+  const isClient = event.event_id && !event.event_id.startsWith("event_");
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 p-2 text-xs">
-      <div className="flex justify-between items-center mb-1">
-        <span className="font-mono text-blue-600 dark:text-blue-400">
-          {event.type}
-        </span>
-        <span className="text-gray-500 dark:text-gray-400">
-          {formattedTime}
-        </span>
+    <div className="flex flex-col gap-2 p-2 rounded-md bg-gray-50 dark:bg-gray-800">
+      <div
+        className="flex items-center gap-2 cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        {isClient ? (
+          <ArrowDown className="text-blue-400" />
+        ) : (
+          <ArrowUp className="text-green-400" />
+        )}
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          {isClient ? "client:" : "server:"}
+          &nbsp;{event.type} | {timestamp}
+        </div>
       </div>
-      <pre className="bg-gray-50 dark:bg-gray-900 p-2 rounded overflow-x-auto dark:text-gray-300">
-        {formattedJson}
-      </pre>
+      <div
+        className={`text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 p-2 rounded-md overflow-x-auto ${
+          isExpanded ? "block" : "hidden"
+        }`}
+      >
+        <pre className="text-xs">{JSON.stringify(event, null, 2)}</pre>
+      </div>
     </div>
   );
 }
 
 export default function EventLog({ events }: { events: any[] }) {
-  // group events by type
-  const groupedEvents: Record<string, any[]> = events.reduce(
-    (acc: any, event: any) => {
-      if (!acc[event.type]) {
-        acc[event.type] = [];
+  const eventsToDisplay: any[] = [];
+  const deltaEvents: Record<string, any> = {};
+
+  events.forEach((event) => {
+    if (event.type.endsWith("delta")) {
+      if (deltaEvents[event.type]) {
+        // for now just log a single event per render pass
+        return;
+      } else {
+        deltaEvents[event.type] = event;
       }
-      acc[event.type].push(event);
-      return acc;
-    },
-    {},
-  );
+    }
+
+    eventsToDisplay.push(
+      <Event key={event.event_id} event={event} timestamp={event.timestamp} />,
+    );
+  });
 
   return (
-    <>
-      <h2 className="text-lg font-bold mb-4 dark:text-white">Event Log</h2>
+    <div className="flex flex-col gap-2 h-full max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-auto">
       {events.length === 0 ? (
-        <p className="text-gray-600 dark:text-gray-400 italic">
-          No events yet...
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {Object.entries(groupedEvents).map(([type, events]) => (
-            <div key={type} className="mb-4">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                {type} ({events.length})
-              </h3>
-              <div className="space-y-1">
-                {events.slice(0, 10).map((event, i) => (
-                  <Event key={i} event={event} timestamp={event.timestamp} />
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="text-gray-500 dark:text-gray-400">
+          Awaiting events...
         </div>
+      ) : (
+        eventsToDisplay
       )}
-    </>
+    </div>
   );
 }

@@ -332,7 +332,7 @@ export default function App() {
         <div className="flex flex-col w-full h-full overflow-hidden">
           <div className="flex-grow flex mt-16">
             {showEvents ? (
-              <div className="flex-grow p-1 overflow-auto">
+              <div className="flex-grow p-1 h-[calc(100vh-8rem)] overflow-hidden">
                 <EventLog events={events} />
               </div>
             ) : (
