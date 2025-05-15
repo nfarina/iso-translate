@@ -43,6 +43,45 @@ export function useOpenAISession(
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const lastTextRef = useRef("");
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  const requestWakeLock = useCallback(async () => {
+    if (!navigator.wakeLock) {
+      console.warn("Wake Lock API is not supported in this browser.");
+      return;
+    }
+
+    try {
+      wakeLockRef.current = await navigator.wakeLock.request("screen");
+      storeEvent({ type: "info_wake_lock_acquired" }, "internal");
+      console.log("Wake lock acquired.");
+    } catch (err) {
+      console.error("Failed to acquire wake lock:", err);
+      storeEvent(
+        { type: "error_wake_lock", message: (err as Error).message },
+        "internal",
+      );
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release().then(() => {
+        storeEvent({ type: "info_wake_lock_released" }, "internal");
+        wakeLockRef.current = null;
+      });
+    }
+  }, []);
+
+  const handleVisibilityChange = useCallback(() => {
+    if (
+      document.visibilityState === "visible" &&
+      isSessionActive &&
+      !wakeLockRef.current
+    ) {
+      requestWakeLock();
+    }
+  }, [isSessionActive, requestWakeLock]);
 
   const storeEvent = useCallback(
     (
@@ -188,6 +227,8 @@ export function useOpenAISession(
   );
 
   const startSession = useCallback(async () => {
+    setEvents([]);
+
     if (!apiKey) {
       console.error("API key is not available. Cannot start session.");
       storeEvent(
@@ -214,8 +255,10 @@ export function useOpenAISession(
       "internal",
     );
     setIsSessionActive(false);
-    setEvents([]);
     lastTextRef.current = "";
+
+    // Request wake lock to keep screen on during the session
+    await requestWakeLock();
 
     try {
       const tokenResponse = await fetch(
@@ -394,6 +437,9 @@ export function useOpenAISession(
         peerConnectionRef.current = null;
       }
       dataChannelRef.current = null;
+
+      // Release wake lock if session failed to start
+      releaseWakeLock();
     }
   }, [
     apiKey,
@@ -401,13 +447,18 @@ export function useOpenAISession(
     sendClientEvent,
     storeEvent,
     processIncomingEventText,
-    currentLanguage1, // Add language dependencies
+    currentLanguage1,
     currentLanguage2,
+    requestWakeLock,
+    releaseWakeLock,
   ]);
 
   const stopSession = useCallback(() => {
     console.log("Stopping session...");
     storeEvent({ type: "info_session_stopping" }, "internal");
+
+    // Release wake lock when session stops
+    releaseWakeLock();
 
     if (dataChannelRef.current) {
       dataChannelRef.current.onopen = null;
@@ -446,18 +497,28 @@ export function useOpenAISession(
     lastTextRef.current = "";
     console.log("Session stopped.");
     storeEvent({ type: "info_session_stopped" }, "internal");
-  }, [storeEvent]);
+  }, [storeEvent, releaseWakeLock]);
+
+  useEffect(() => {
+    // Add visibility change event listener to re-acquire wake lock
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [handleVisibilityChange]);
 
   useEffect(() => {
     return () => {
       console.log("useOpenAISession unmounting, ensuring session is stopped.");
       stopSession();
+      releaseWakeLock();
       if (audioElementRef.current && audioElementRef.current.parentNode) {
         audioElementRef.current.parentNode.removeChild(audioElementRef.current);
         audioElementRef.current = null;
       }
     };
-  }, [stopSession]);
+  }, [stopSession, releaseWakeLock]);
 
   return {
     isSessionActive,
