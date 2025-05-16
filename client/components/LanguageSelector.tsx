@@ -74,7 +74,7 @@ export default function LanguageSelector({
         {!isInstalled && (
           <button
             onClick={() => setShowInstallDialog(true)}
-            className="text-xs bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full shadow-sm ml-2"
+            className="text-xs bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full shadow-sm ml-2 mr-2"
           >
             Install app
           </button>

@@ -29,7 +29,7 @@ export default function InstallDialog({ isOpen, onClose }: InstallDialogProps) {
       onClick={handleBackdropClick}
     >
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl">
-        <h2 className="text-xl font-bold mb-4 dark:text-white">Install App</h2>
+        <h2 className="text-xl font-bold mb-4 dark:text-white">Install app</h2>
 
         <div className="mb-6">
           <h3 className="font-semibold mb-2 dark:text-white">iOS</h3>
