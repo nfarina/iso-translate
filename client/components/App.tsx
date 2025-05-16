@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useState } from "react";
 import { Code, Globe, Settings } from "react-feather";
 import { useOpenAISession } from "../hooks/useOpenAISession";
+import { useVersionCheck } from "../hooks/useVersionCheck";
 import {
   DEFAULT_LANGUAGE_1,
   DEFAULT_LANGUAGE_2,
@@ -44,6 +45,9 @@ export default function App() {
       document.documentElement.classList.contains("dark")
     );
   });
+
+  // Check for updates periodically
+  const { updateStatus, checkForUpdate } = useVersionCheck(300000); // Check every 5 minutes
 
   // Listen for changes in system preference
   useEffect(() => {
@@ -150,10 +154,13 @@ export default function App() {
                 editingSettings
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
                   : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
-              } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
+              } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md relative`}
               title="Settings"
             >
               <Settings size={20} />
+              {updateStatus.hasUpdate && !editingSettings && (
+                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+              )}
             </Button>
           </div>
         </div>
@@ -174,7 +181,13 @@ export default function App() {
 
   function renderContentBody() {
     if (editingSettings) {
-      return <SettingsPage onBack={() => setEditingSettings(false)} />;
+      return (
+        <SettingsPage
+          onBack={() => setEditingSettings(false)}
+          updateStatus={updateStatus}
+          checkForUpdate={() => checkForUpdate(true)}
+        />
+      );
     }
     if (!apiKey) {
       return (

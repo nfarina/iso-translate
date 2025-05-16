@@ -1,10 +1,28 @@
 import { useRef, useState } from "react";
-import { AlertTriangle, Code, Zap } from "react-feather";
+import { AlertTriangle, Code, RefreshCw, Zap } from "react-feather";
+import { VERSION } from "../hooks/useVersionCheck";
 import { ModelOption, TokenUsage } from "../utils/models";
 import { useLocalStorage } from "../utils/useLocalStorage";
 import Button from "./Button";
 
-export default function SettingsPage({ onBack }: { onBack?: () => void }) {
+interface UpdateStatus {
+  checking: boolean;
+  hasUpdate: boolean;
+  latestVersion: string;
+  currentVersion: string;
+}
+
+interface SettingsPageProps {
+  onBack?: () => void;
+  updateStatus: UpdateStatus;
+  checkForUpdate: () => void;
+}
+
+export default function SettingsPage({
+  onBack,
+  updateStatus,
+  checkForUpdate,
+}: SettingsPageProps) {
   const [apiKey, setApiKey] = useLocalStorage<string | null>(
     "App:apiKey",
     null,
@@ -58,36 +76,69 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
         </div>
 
         {/* API Key Section */}
-        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
-          <h3 className="text-md font-semibold mb-3 dark:text-white">
+        <div className="bg-white dark:bg-gray-800 p-4 flex flex-col gap-3 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
+          <h3 className="text-md font-semibold dark:text-white">
             API Key Configuration
           </h3>
 
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             {apiKey
               ? "Your OpenAI API key is configured."
               : "Please enter your OpenAI API key to use Iso Translate."}
           </p>
 
-          <input
-            ref={inputRef}
-            type="text"
-            value={
-              isFocused
-                ? apiKey || ""
-                : apiKey
-                ? getTruncatedApiKey(apiKey)
-                : ""
-            }
-            onChange={(e) => setApiKey(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder="Enter your OpenAI API key"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 mb-4 dark:bg-gray-700 dark:text-white font-mono"
-            autoComplete="off"
-          />
+          <div className="relative">
+            <input
+              ref={inputRef}
+              type="text"
+              value={
+                isFocused
+                  ? apiKey || ""
+                  : apiKey
+                  ? getTruncatedApiKey(apiKey)
+                  : ""
+              }
+              onChange={(e) => setApiKey(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder="Enter your OpenAI API key"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
+              autoComplete="off"
+            />
+            {apiKey && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to clear your API key?",
+                    )
+                  ) {
+                    setApiKey(null);
+                  }
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                aria-label="Clear API key"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            )}
+          </div>
 
-          {!apiKey ? (
+          {!apiKey && (
             <Button
               onClick={() => setApiKey(inputRef.current?.value || "")}
               disabled={!inputRef.current?.value?.trim()}
@@ -95,28 +146,60 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
             >
               Save API Key
             </Button>
-          ) : (
+          )}
+        </div>
+
+        {/* Version Information Section */}
+        <div className="bg-white dark:bg-gray-800 p-4 flex flex-col gap-3 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm overflow-hidden">
+          <h3 className="text-md font-semibold dark:text-white flex items-center">
+            App Version
+            {updateStatus.hasUpdate && (
+              <span className="w-2.5 h-2.5 bg-red-500 rounded-full ml-2"></span>
+            )}
+          </h3>
+
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Current Version: <span className="font-mono">{VERSION}</span>
+            </p>
             <Button
-              onClick={() => {
-                if (
-                  window.confirm("Are you sure you want to clear your API key?")
-                ) {
-                  setApiKey(null);
-                }
-              }}
-              className="!bg-red-500 hover:bg-red-600 !text-white text-sm"
+              onClick={checkForUpdate}
+              disabled={updateStatus.checking}
+              className="!px-3 !py-1 -mt-1 !bg-gray-200 hover:!bg-gray-300 dark:!bg-gray-700 dark:hover:!bg-gray-600 !text-gray-700 dark:!text-gray-300 text-xs flex items-center"
             >
-              Clear Key…
+              <RefreshCw
+                size={12}
+                className={`mr-1 ${
+                  updateStatus.checking ? "animate-spin" : ""
+                }`}
+              />
+              {updateStatus.checking ? "Checking..." : "Check for updates"}
             </Button>
+          </div>
+
+          {updateStatus.hasUpdate && (
+            <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-3 px-4 flex items-start -m-4 mt-1">
+              <span>
+                Update available:{" "}
+                <span className="font-mono">{updateStatus.latestVersion}</span>{" "}
+                -{" "}
+                <button
+                  onClick={() => window.location.reload()}
+                  className="text-blue-600 dark:text-blue-400 hover:underline focus:outline-none"
+                >
+                  Tap here to update
+                </button>
+              </span>
+            </div>
           )}
         </div>
 
         {/* Model Selection Section */}
-        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm overflow-hidden">
-          <h3 className="text-md font-semibold mb-3 dark:text-white">
+        <div className="bg-white dark:bg-gray-800 p-4 flex flex-col gap-3 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm overflow-hidden">
+          <h3 className="text-md font-semibold dark:text-white">
             Model Selection
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             Choose which OpenAI model to use for translations.
             <br />
             <Zap size={13} className="inline-block -mt-1" /> indicates the
@@ -168,7 +251,7 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
           </div>
 
           {tokenUsage && (
-            <div className="-m-4 mt-4 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 px-4 flex items-start">
+            <div className="-m-4 mt-1 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 px-4 flex items-start">
               <AlertTriangle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
               <span>
                 Changing the model now will reset your current token usage
@@ -179,10 +262,8 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
         </div>
 
         {/* Advanced Section */}
-        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
-          <h3 className="text-md font-semibold mb-3 dark:text-white">
-            Advanced
-          </h3>
+        <div className="bg-white dark:bg-gray-800 p-4 flex flex-col gap-3 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
+          <h3 className="text-md font-semibold dark:text-white">Advanced</h3>
 
           <div className="space-y-4">
             <div className="flex items-start">
