@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { X } from "react-feather";
 import { calculateTokenCosts, formatPrice, TokenUsage } from "../utils/models";
 
@@ -12,7 +13,21 @@ export default function TokenUsageDialog({
   onClose,
   tokenUsage,
 }: TokenUsageDialogProps) {
-  if (!isOpen) return null;
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      dialogRef.current?.showModal();
+    } else {
+      dialogRef.current?.close();
+    }
+  }, [isOpen]);
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === dialogRef.current) {
+      onClose();
+    }
+  };
 
   const { model, total_tokens, input_token_details, output_token_details } =
     tokenUsage;
@@ -21,14 +36,12 @@ export default function TokenUsageDialog({
   const formattedPrice = formatPrice(totalCost, 4); // 4 decimal places for the dialog
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      onClick={onClose}
+    <dialog
+      ref={dialogRef}
+      className="p-0 px-4 bg-transparent backdrop:bg-black backdrop:opacity-70 rounded-lg max-w-md w-full fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0"
+      onClick={handleBackdropClick}
     >
-      <div
-        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full m-4 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium dark:text-white">
             Token Usage Details
@@ -104,6 +117,6 @@ export default function TokenUsageDialog({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

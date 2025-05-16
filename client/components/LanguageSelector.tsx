@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Language, LANGUAGES } from "../utils/languages";
+import { ArrowLeft, ArrowRight } from "react-feather";
+import { Language } from "../utils/languages";
 import InstallDialog from "./InstallDialog";
+import LanguageSelectionDialog from "./LanguageSelectionDialog";
 
 const isInstalled =
   "standalone" in window.navigator && window.navigator.standalone;
@@ -21,52 +23,43 @@ export default function LanguageSelector({
   isSessionActive,
 }: LanguageSelectorProps) {
   const [showInstallDialog, setShowInstallDialog] = useState(false);
-
-  const handleLang1Change = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCode = event.target.value;
-    const selectedLang = LANGUAGES.find((lang) => lang.code === selectedCode);
-    if (selectedLang) {
-      onLanguage1Change(selectedLang);
-    }
-  };
-
-  const handleLang2Change = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCode = event.target.value;
-    const selectedLang = LANGUAGES.find((lang) => lang.code === selectedCode);
-    if (selectedLang) {
-      onLanguage2Change(selectedLang);
-    }
-  };
+  const [showLanguage1Dialog, setShowLanguage1Dialog] = useState(false);
+  const [showLanguage2Dialog, setShowLanguage2Dialog] = useState(false);
 
   return (
     <div className="flex-grow px-2 flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <div className="flex gap-2 flex-1">
-          <select
-            value={currentLanguage1.code}
-            onChange={handleLang1Change}
-            disabled={isSessionActive}
-            className="px-1 py-1 text-base rounded-md focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white disabled:opacity-50"
+        <div className="flex items-center gap-3 flex-1">
+          <div
+            onClick={() => !isSessionActive && setShowLanguage1Dialog(true)}
+            className={`flex items-center text-base rounded px-2 py-1 -mx-2 -my-1 ${
+              isSessionActive
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/40"
+            }`}
           >
-            {LANGUAGES.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
+            <span className="text-gray-800 dark:text-white">
+              {currentLanguage1.name}
+            </span>
+          </div>
 
-          <select
-            value={currentLanguage2.code}
-            onChange={handleLang2Change}
-            disabled={isSessionActive}
-            className="px-1 py-1 text-base rounded-md focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white disabled:opacity-50"
+          <div className="flex items-center text-gray-500 dark:text-gray-400">
+            <ArrowLeft size={14} className="stroke-current" />
+            <ArrowRight size={14} className="stroke-current -ml-1.5" />
+          </div>
+
+          <div
+            onClick={() => !isSessionActive && setShowLanguage2Dialog(true)}
+            className={`flex items-center text-base rounded px-2 py-1 -mx-2 -my-1 ${
+              isSessionActive
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/40"
+            }`}
           >
-            {LANGUAGES.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
+            <span className="text-gray-800 dark:text-white">
+              {currentLanguage2.name}
+            </span>
+          </div>
         </div>
 
         <div className="flex-1" />
@@ -74,7 +67,7 @@ export default function LanguageSelector({
         {!isInstalled && (
           <button
             onClick={() => setShowInstallDialog(true)}
-            className="text-xs bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full shadow-sm ml-2 mr-2"
+            className="text-xs bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full shadow-sm mb-1"
           >
             Install app
           </button>
@@ -84,6 +77,22 @@ export default function LanguageSelector({
       <InstallDialog
         isOpen={showInstallDialog}
         onClose={() => setShowInstallDialog(false)}
+      />
+
+      <LanguageSelectionDialog
+        isOpen={showLanguage1Dialog}
+        onClose={() => setShowLanguage1Dialog(false)}
+        selectedLanguage={currentLanguage1}
+        onLanguageSelect={onLanguage1Change}
+        title="Select top language"
+      />
+
+      <LanguageSelectionDialog
+        isOpen={showLanguage2Dialog}
+        onClose={() => setShowLanguage2Dialog(false)}
+        selectedLanguage={currentLanguage2}
+        onLanguageSelect={onLanguage2Change}
+        title="Select bottom language"
       />
     </div>
   );
