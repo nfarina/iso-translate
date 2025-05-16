@@ -1,5 +1,6 @@
 import { startTransition, useEffect, useState } from "react";
 import { Code, Globe, Settings } from "react-feather";
+import { useIsDarkMode } from "../hooks/useIsDarkMode";
 import { useOpenAISession } from "../hooks/useOpenAISession";
 import { useVersionCheck } from "../hooks/useVersionCheck";
 import {
@@ -38,29 +39,10 @@ export default function App() {
   const [editingSettings, setEditingSettings] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showLanguageSelector, setShowLanguageSelector] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return (
-      window.matchMedia("(prefers-color-scheme: dark)").matches ||
-      document.documentElement.classList.contains("dark")
-    );
-  });
+  const { isDarkMode, setIsDarkMode } = useIsDarkMode();
 
   // Check for updates periodically
   const { updateStatus, checkForUpdate } = useVersionCheck(300000); // Check every 5 minutes
-
-  // Listen for changes in system preference
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setIsDarkMode(e.matches);
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
 
   const [language1, setLanguage1] = useLocalStorage<Language>(
     "App:language1",
