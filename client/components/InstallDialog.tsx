@@ -1,3 +1,4 @@
+import { X } from "react-feather";
 import Dialog from "./Dialog";
 
 interface InstallDialogProps {
@@ -8,7 +9,15 @@ interface InstallDialogProps {
 export default function InstallDialog({ isOpen, onClose }: InstallDialogProps) {
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4 dark:text-white">Install app</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold dark:text-white">Install app</h2>
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+        >
+          <X size={20} />
+        </button>
+      </div>
 
       <div className="mb-6">
         <h3 className="font-semibold mb-2 dark:text-white">iOS</h3>
@@ -19,7 +28,7 @@ export default function InstallDialog({ isOpen, onClose }: InstallDialogProps) {
         </ol>
       </div>
 
-      <div className="mb-6">
+      <div>
         <h3 className="font-semibold mb-2 dark:text-white">macOS</h3>
         <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700 dark:text-gray-300">
           <li>Click on the share button in Safari</li>
@@ -27,13 +36,6 @@ export default function InstallDialog({ isOpen, onClose }: InstallDialogProps) {
           <li>Click "Add" in the dialog that appears</li>
         </ol>
       </div>
-
-      <button
-        onClick={onClose}
-        className="bg-blue-500 hover:bg-blue-600 text-white rounded-md px-4 py-2 w-full"
-      >
-        Close
-      </button>
     </Dialog>
   );
 }
