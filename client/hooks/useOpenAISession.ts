@@ -3,6 +3,7 @@ import { getTranslatorSessionUpdate } from "../translatorTool.js";
 import { Language } from "../utils/languages.js";
 import { ModelOption, TokenUsage } from "../utils/models.js";
 import { useLocalStorage } from "../utils/useLocalStorage.js";
+import { useWakeLock } from "./useWakeLock.js";
 
 // Represents the expected structure from the AI after JSON.parse
 // It will have dynamic keys based on language codes.
@@ -49,45 +50,9 @@ export function useOpenAISession(
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const lastTextRef = useRef("");
-  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
-  const requestWakeLock = useCallback(async () => {
-    if (!navigator.wakeLock) {
-      console.warn("Wake Lock API is not supported in this browser.");
-      return;
-    }
-
-    try {
-      wakeLockRef.current = await navigator.wakeLock.request("screen");
-      storeEvent({ type: "info_wake_lock_acquired" }, "internal");
-      console.log("Wake lock acquired.");
-    } catch (err) {
-      console.error("Failed to acquire wake lock:", err);
-      storeEvent(
-        { type: "error_wake_lock", message: (err as Error).message },
-        "internal",
-      );
-    }
-  }, []);
-
-  const releaseWakeLock = useCallback(() => {
-    if (wakeLockRef.current) {
-      wakeLockRef.current.release().then(() => {
-        storeEvent({ type: "info_wake_lock_released" }, "internal");
-        wakeLockRef.current = null;
-      });
-    }
-  }, []);
-
-  const handleVisibilityChange = useCallback(() => {
-    if (
-      document.visibilityState === "visible" &&
-      isSessionActive &&
-      !wakeLockRef.current
-    ) {
-      requestWakeLock();
-    }
-  }, [isSessionActive, requestWakeLock]);
+  // Use the new wake lock hook
+  const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
   const storeEvent = useCallback(
     (
@@ -268,6 +233,7 @@ export function useOpenAISession(
 
     // Request wake lock to keep screen on during the session
     await requestWakeLock();
+    storeEvent({ type: "info_wake_lock_acquired" }, "internal");
 
     try {
       const tokenResponse = await fetch(
@@ -493,7 +459,8 @@ export function useOpenAISession(
       dataChannelRef.current = null;
 
       // Release wake lock if session failed to start
-      releaseWakeLock();
+      await releaseWakeLock();
+      storeEvent({ type: "info_wake_lock_released" }, "internal");
     }
   }, [
     apiKey,
@@ -513,7 +480,9 @@ export function useOpenAISession(
     storeEvent({ type: "info_session_stopping" }, "internal");
 
     // Release wake lock when session stops
-    releaseWakeLock();
+    releaseWakeLock().then(() => {
+      storeEvent({ type: "info_wake_lock_released" }, "internal");
+    });
 
     if (dataChannelRef.current) {
       dataChannelRef.current.onopen = null;
@@ -555,25 +524,15 @@ export function useOpenAISession(
   }, [storeEvent, releaseWakeLock]);
 
   useEffect(() => {
-    // Add visibility change event listener to re-acquire wake lock
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [handleVisibilityChange]);
-
-  useEffect(() => {
     return () => {
       console.log("useOpenAISession unmounting, ensuring session is stopped.");
       stopSession();
-      releaseWakeLock();
       if (audioElementRef.current && audioElementRef.current.parentNode) {
         audioElementRef.current.parentNode.removeChild(audioElementRef.current);
         audioElementRef.current = null;
       }
     };
-  }, [stopSession, releaseWakeLock]);
+  }, [stopSession]);
 
   return {
     isSessionActive,
