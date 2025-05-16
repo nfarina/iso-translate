@@ -12,13 +12,20 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "",
 };
 
+// Determine if we're in development mode
+const isDevelopment = import.meta.env.DEV === true;
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Analytics
+// Initialize Analytics - but only in production
 let analytics: Analytics | null = null;
 try {
-  analytics = getAnalytics(app);
+  if (!isDevelopment) {
+    analytics = getAnalytics(app);
+  } else {
+    console.log("Analytics disabled in development mode");
+  }
 } catch (error) {
   console.error("Analytics initialization failed:", error);
 }
@@ -30,6 +37,8 @@ export const trackEvent = (
 ) => {
   if (analytics) {
     logEvent(analytics, eventName, eventParams);
+  } else if (isDevelopment) {
+    console.log("[DEV] Would track event:", eventName, eventParams);
   } else {
     console.log(
       "Analytics not initialized, would track:",

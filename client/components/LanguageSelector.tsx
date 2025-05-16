@@ -26,10 +26,17 @@ export default function LanguageSelector({
   const [showLanguage1Dialog, setShowLanguage1Dialog] = useState(false);
   const [showLanguage2Dialog, setShowLanguage2Dialog] = useState(false);
 
+  const handleSwapLanguages = () => {
+    if (!isSessionActive) {
+      onLanguage1Change(currentLanguage2);
+      onLanguage2Change(currentLanguage1);
+    }
+  };
+
   return (
     <div className="flex-grow px-2 flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-2 flex-1">
           <div
             onClick={() => !isSessionActive && setShowLanguage1Dialog(true)}
             className={`flex items-center text-base rounded px-2 py-1 -mx-2 -my-1 ${
@@ -43,10 +50,19 @@ export default function LanguageSelector({
             </span>
           </div>
 
-          <div className="flex items-center text-gray-500 dark:text-gray-400">
+          <button
+            onClick={handleSwapLanguages}
+            disabled={isSessionActive}
+            className={`flex items-center text-gray-500 dark:text-gray-400 rounded p-1 ${
+              isSessionActive
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/40"
+            }`}
+            title="Swap languages"
+          >
             <ArrowLeft size={14} className="stroke-current" />
             <ArrowRight size={14} className="stroke-current -ml-1.5" />
-          </div>
+          </button>
 
           <div
             onClick={() => !isSessionActive && setShowLanguage2Dialog(true)}
