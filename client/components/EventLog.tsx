@@ -53,7 +53,7 @@ export default function EventLog({ events }: { events: any[] }) {
   });
 
   return (
-    <div className="flex flex-col gap-3 p-3 h-full overflow-y-auto">
+    <div className="flex flex-col gap-3 p-3 h-full w-full max-w-screen-lg self-center overflow-y-auto">
       {events.length === 0 ? (
         <div className="text-gray-500 dark:text-gray-400">
           Awaiting events...

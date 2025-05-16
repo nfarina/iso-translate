@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { AlertTriangle, Zap } from "react-feather";
+import { AlertTriangle, Code, Zap } from "react-feather";
 import { ModelOption, TokenUsage } from "../utils/models";
 import { useLocalStorage } from "../utils/useLocalStorage";
 import Button from "./Button";
@@ -16,6 +16,10 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
   const [tokenUsage, setTokenUsage] = useLocalStorage<TokenUsage | null>(
     "useOpenAISession:tokenUsage",
     null,
+  );
+  const [showLogs, setShowLogs] = useLocalStorage<boolean>(
+    "App:showLogs",
+    false,
   );
 
   const [isFocused, setIsFocused] = useState(false);
@@ -167,11 +171,45 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
             <div className="-m-4 mt-4 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 px-4 flex items-start">
               <AlertTriangle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
               <span>
-                Changing the model will reset your current token usage
+                Changing the model now will reset your current token usage
                 statistics.
               </span>
             </div>
           )}
+        </div>
+
+        {/* Advanced Section */}
+        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
+          <h3 className="text-md font-semibold mb-3 dark:text-white">
+            Advanced
+          </h3>
+
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="flex h-5 items-center">
+                <input
+                  id="show-logs"
+                  type="checkbox"
+                  checked={showLogs}
+                  onChange={(e) => setShowLogs(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label
+                  htmlFor="show-logs"
+                  className="font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Show logs button
+                </label>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Adds a <Code size={14} className="inline-block -mt-1" />{" "}
+                  button in the header that reveals detailed event logs. Useful
+                  for debugging and support.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div className="flex-grow" />

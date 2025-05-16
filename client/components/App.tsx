@@ -30,6 +30,10 @@ export default function App() {
     "App:model",
     "gpt-4o-mini-realtime-preview",
   );
+  const [showLogs, setShowLogs] = useLocalStorage<boolean>(
+    "App:showLogs",
+    false,
+  );
   const [editingSettings, setEditingSettings] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showLanguageSelector, setShowLanguageSelector] = useState(true);
@@ -121,20 +125,22 @@ export default function App() {
             >
               <Globe size={20} />
             </Button>
-            <Button
-              onClick={() => {
-                setShowEvents(!showEvents);
-                setEditingSettings(false);
-              }}
-              className={`p-1 !px-3 ${
-                showEvents
-                  ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
-                  : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
-              } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
-              title={showEvents ? "Show Translations" : "Show Event Log"}
-            >
-              <Code size={20} />
-            </Button>
+            {showLogs && (
+              <Button
+                onClick={() => {
+                  setShowEvents(!showEvents);
+                  setEditingSettings(false);
+                }}
+                className={`p-1 !px-3 ${
+                  showEvents
+                    ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
+                    : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
+                } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
+                title={showEvents ? "Show Translations" : "Show Event Log"}
+              >
+                <Code size={20} />
+              </Button>
+            )}
             <Button
               onClick={() => {
                 setEditingSettings(!editingSettings);
@@ -192,7 +198,7 @@ export default function App() {
       );
     }
     // API key exists, show main app UI
-    if (showEvents) {
+    if (showEvents && showLogs) {
       return <EventLog events={events} />;
     }
     return (
