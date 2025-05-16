@@ -56,4 +56,18 @@ nav {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+.normal-gradient {
+  background: linear-gradient(to right,
+    color(display-p3 0.0025 0.614 0.9894),
+    color(display-p3 0.2913 0.0634 0.9687)
+  );
+}
+
+.vibe-gradient {
+  background: linear-gradient(to right,
+    color(display-p3 0.2749 0.4545 0.9957),
+    color(display-p3 0.5534 0.0071 0.983)
+  );
+}
+
 /* Additional dark mode overrides can be added here */

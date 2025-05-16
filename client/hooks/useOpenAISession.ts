@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getTranslatorSessionUpdate } from "../translatorTool.js";
 import { Language } from "../utils/languages.js";
+import { ModelOption, TokenUsage } from "../utils/models.js";
 import { useLocalStorage } from "../utils/useLocalStorage.js";
 
 // Represents the expected structure from the AI after JSON.parse
@@ -28,29 +29,11 @@ interface OpenAIEvent {
   _direction?: "sent" | "received" | "internal";
 }
 
-export interface TokenUsage {
-  total_tokens: number;
-  input_tokens: number;
-  output_tokens: number;
-  input_token_details: {
-    text_tokens: number;
-    audio_tokens: number;
-    cached_tokens: number;
-    cached_tokens_details: {
-      text_tokens: number;
-      audio_tokens: number;
-    };
-  };
-  output_token_details: {
-    text_tokens: number;
-    audio_tokens: number;
-  };
-}
-
 export function useOpenAISession(
   apiKey: string | null,
   currentLanguage1: Language,
   currentLanguage2: Language,
+  modelName: ModelOption = "gpt-4o-mini-realtime-preview",
 ) {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [events, setEvents] = useState<OpenAIEvent[]>([]);
@@ -269,11 +252,14 @@ export function useOpenAISession(
       "Attempting to start session with languages:",
       currentLanguage1.name,
       currentLanguage2.name,
+      "and model:",
+      modelName,
     );
     storeEvent(
       {
         type: "info_session_starting",
         languages: [currentLanguage1.name, currentLanguage2.name],
+        model: modelName,
       },
       "internal",
     );
@@ -293,7 +279,7 @@ export function useOpenAISession(
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-4o-realtime-preview",
+            model: modelName,
             voice: "verse",
           }),
         },
@@ -379,6 +365,7 @@ export function useOpenAISession(
           console.log("Token usage:", event.response.usage);
           setTokenUsage((usage) => {
             return {
+              model: modelName,
               total_tokens:
                 (usage?.total_tokens ?? 0) + event.response.usage.total_tokens,
               input_tokens:
@@ -518,6 +505,7 @@ export function useOpenAISession(
     currentLanguage2,
     requestWakeLock,
     releaseWakeLock,
+    modelName,
   ]);
 
   const stopSession = useCallback(() => {

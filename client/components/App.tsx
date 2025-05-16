@@ -1,17 +1,18 @@
 import { startTransition, useEffect, useState } from "react";
-import { Code, Globe, Key } from "react-feather";
+import { Code, Globe, Settings } from "react-feather";
 import { useOpenAISession } from "../hooks/useOpenAISession";
 import {
   DEFAULT_LANGUAGE_1,
   DEFAULT_LANGUAGE_2,
   Language,
 } from "../utils/languages";
+import { ModelOption } from "../utils/models";
 import { useLocalStorage } from "../utils/useLocalStorage";
-import ApiKeyInput from "./ApiKeyInput";
 import Button from "./Button";
 import EventLog from "./EventLog";
 import LanguageSelector from "./LanguageSelector";
 import SessionControls from "./SessionControls";
+import SettingsPage from "./SettingsPage";
 import TranslationPanel from "./TranslationPanel";
 import UsageBadge from "./UsageBadge";
 import logoWhite from "/assets/logo-horizontal-white.png";
@@ -25,7 +26,11 @@ export default function App() {
     "App:apiKey",
     null,
   );
-  const [editingApiKey, setEditingApiKey] = useState(false);
+  const [model, setModel] = useLocalStorage<ModelOption>(
+    "App:model",
+    "gpt-4o-mini-realtime-preview",
+  );
+  const [editingSettings, setEditingSettings] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showLanguageSelector, setShowLanguageSelector] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -70,9 +75,15 @@ export default function App() {
     events,
     translationSegments,
     tokenUsage,
-    startSession,
+    startSession: originalStartSession,
     stopSession,
-  } = useOpenAISession(apiKey, language1, language2); // Pass selected languages
+  } = useOpenAISession(apiKey, language1, language2, model); // Pass model as well
+
+  // Wrap startSession to also close settings when starting
+  const startSession = async () => {
+    setEditingSettings(false); // Close settings page
+    await originalStartSession();
+  };
 
   useEffect(() => {
     if (!apiKey && isSessionActive) {
@@ -113,7 +124,7 @@ export default function App() {
             <Button
               onClick={() => {
                 setShowEvents(!showEvents);
-                setEditingApiKey(false);
+                setEditingSettings(false);
               }}
               className={`p-1 !px-3 ${
                 showEvents
@@ -126,17 +137,17 @@ export default function App() {
             </Button>
             <Button
               onClick={() => {
-                setEditingApiKey(!editingApiKey);
+                setEditingSettings(!editingSettings);
                 setShowEvents(false);
               }}
               className={`p-1 !px-3 ${
-                editingApiKey
+                editingSettings
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
                   : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
               } bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
-              title="API Key Settings"
+              title="Settings"
             >
-              <Key size={20} />
+              <Settings size={20} />
             </Button>
           </div>
         </div>
@@ -156,25 +167,24 @@ export default function App() {
   }
 
   function renderContentBody() {
-    if (editingApiKey) {
-      return (
-        <div className="flex-grow flex items-center justify-center h-full p-4">
-          <ApiKeyInput onBack={() => setEditingApiKey(false)} />
-        </div>
-      );
+    if (editingSettings) {
+      return <SettingsPage onBack={() => setEditingSettings(false)} />;
     }
     if (!apiKey) {
       return (
         <div className="flex-grow flex items-center justify-center h-full p-4">
           <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md text-center shadow-sm">
             <h2 className="text-lg font-bold mb-4 dark:text-white">
-              Welcome to Iso Translate
+              Welcome to Iso
             </h2>
             <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600 rounded-md">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Please click the key icon{" "}
-                <Key size={16} className="inline-block -mt-1 align-middle" /> in
-                the top-right corner to add your OpenAI API key.
+                Please click the settings icon{" "}
+                <Settings
+                  size={16}
+                  className="inline-block -mt-1 align-middle"
+                />{" "}
+                in the top-right corner to add your OpenAI API key.
               </p>
             </div>
           </div>
@@ -198,9 +208,7 @@ export default function App() {
   return (
     <main className="h-full flex flex-col dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {renderHeader()}
-      <div className="h-0 flex-grow p-3 flex flex-col">
-        {renderContentBody()}
-      </div>
+      <div className="h-0 flex-grow flex flex-col">{renderContentBody()}</div>
       <div className="footer bg-gray-100 dark:bg-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
         <div
           className="p-4"

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, Copy, Mic, MicOff, Trash2 } from "react-feather";
-import { TokenUsage, TranslationSegment } from "../hooks/useOpenAISession";
+import { TranslationSegment } from "../hooks/useOpenAISession";
+import { ModelOption, TokenUsage } from "../utils/models";
 import { useLocalStorage } from "../utils/useLocalStorage";
 import Button from "./Button";
 
@@ -82,6 +83,10 @@ export default function SessionControls({
     "App:apiKey",
     null,
   );
+  const [model] = useLocalStorage<ModelOption>(
+    "App:model",
+    "gpt-4o-mini-realtime-preview",
+  );
   const [translationSegments, setTranslationSegments] = useLocalStorage<
     TranslationSegment[]
   >("useOpenAISession:translationSegments", []);
@@ -91,7 +96,7 @@ export default function SessionControls({
   );
 
   const clearTranslations = () => {
-    if (window.confirm("Are you sure you want to clear all translations?")) {
+    if (window.confirm("Clear all translations and reset token usage?")) {
       setTranslationSegments([]);
       setTokenUsage(null);
     }
@@ -108,6 +113,16 @@ export default function SessionControls({
       .join("\n\n");
 
     await navigator.clipboard.writeText(textToCopy);
+  };
+
+  // Get the appropriate button style based on model
+  const getStartButtonStyle = () => {
+    if (model === "gpt-4o-realtime-preview") {
+      // More vibrant style for GPT-4o
+      return "text-white vibe-gradient hover:opacity-90";
+    }
+    // Default style for GPT-4o mini
+    return "text-white normal-gradient hover:opacity-90";
   };
 
   return (
@@ -142,7 +157,7 @@ export default function SessionControls({
             textDefault="Start listening"
             textPending="Starting..."
             icon={<Mic height={16} />}
-            className="text-white bg-gradient-to-r from-[#4392C6] to-[#4844B7] hover:opacity-90"
+            className={getStartButtonStyle()}
           />
         )}
       </div>

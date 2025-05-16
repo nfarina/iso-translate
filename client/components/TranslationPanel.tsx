@@ -56,7 +56,7 @@ export default function TranslationPanel({
   return (
     <>
       {isSessionActive || translationSegments.length > 0 ? (
-        <div className="flex-grow flex flex-col h-full space-y-3 text-xl">
+        <div className="flex-grow flex flex-col h-full p-3 space-y-3 text-xl w-full max-w-screen-lg self-center">
           {/* First language box */}
           <div className="flex-1 p-2 rounded-md bg-white dark:bg-gray-800 shadow-sm overflow-y-auto flex flex-col-reverse">
             {translationSegments.length === 0 && (
@@ -78,11 +78,17 @@ export default function TranslationPanel({
           </div>
         </div>
       ) : (
-        <div className="flex-grow flex items-center justify-center h-full">
-          <p className="text-gray-500 dark:text-gray-400 italic text-center">
-            {isSessionActive
-              ? `Listening... Speak to see translations into ${language1.name} and ${language2.name}.`
-              : "Select languages and start listening to begin translation."}
+        <div className="flex-grow flex items-center justify-center p-3 h-full">
+          <p className="text-gray-500 dark:text-gray-400 italic text-center text-lg">
+            {isSessionActive ? (
+              `Listening... Speak to see translations into ${language1.name} and ${language2.name}.`
+            ) : (
+              <>
+                Select languages and start listening
+                <br />
+                below to begin translation.
+              </>
+            )}
           </p>
         </div>
       )}
