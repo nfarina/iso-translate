@@ -16,7 +16,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     // Include experimental React types.
-    "types": ["react/experimental"]
+    "types": ["react/experimental", "vite/client"]
   },
   "include": [
     "client/**/*.ts",

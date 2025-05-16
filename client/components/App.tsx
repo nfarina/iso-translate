@@ -3,6 +3,7 @@ import { Code, Globe, Settings } from "react-feather";
 import { useIsDarkMode } from "../hooks/useIsDarkMode";
 import { useOpenAISession } from "../hooks/useOpenAISession";
 import { useVersionCheck } from "../hooks/useVersionCheck";
+import { trackEvent } from "../utils/firebase";
 import {
   DEFAULT_LANGUAGE_1,
   DEFAULT_LANGUAGE_2,
@@ -72,6 +73,12 @@ export default function App() {
   // Wrap startSession to also close settings when starting
   const startSession = async () => {
     setEditingSettings(false); // Close settings page
+    // Track session start with language selections
+    trackEvent("session_started", {
+      language1: language1.code,
+      language2: language2.code,
+      model: model,
+    });
     await originalStartSession();
   };
 
