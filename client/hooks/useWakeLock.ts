@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useWakeLock() {
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const [isActive, setIsActive] = useState(false);
 
   const requestWakeLock = useCallback(async () => {
     if (!navigator.wakeLock) {
@@ -11,7 +12,8 @@ export function useWakeLock() {
 
     try {
       wakeLockRef.current = await navigator.wakeLock.request("screen");
-      console.log("Wake lock acquired.");
+      console.log("Wake lock acquired");
+      setIsActive(true);
       return true;
     } catch (err) {
       console.error("Failed to acquire wake lock:", err);
@@ -19,14 +21,23 @@ export function useWakeLock() {
     }
   }, []);
 
-  const releaseWakeLock = useCallback(() => {
+  const releaseWakeLock = useCallback(async () => {
     if (wakeLockRef.current) {
-      return wakeLockRef.current.release().then(() => {
+      try {
+        await wakeLockRef.current.release();
+        console.log("Wake lock released.");
         wakeLockRef.current = null;
+        setIsActive(false);
         return true;
-      });
+      } catch (err) {
+        console.error("Failed to release wake lock:", err);
+        // Still clear the reference even if release fails
+        wakeLockRef.current = null;
+        setIsActive(false);
+        return false;
+      }
     }
-    return Promise.resolve(false);
+    return false;
   }, []);
 
   const handleVisibilityChange = useCallback(() => {
@@ -46,7 +57,7 @@ export function useWakeLock() {
 
   return {
     isSupported: !!navigator.wakeLock,
-    isActive: !!wakeLockRef.current,
+    isActive,
     requestWakeLock,
     releaseWakeLock,
   };
