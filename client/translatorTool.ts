@@ -15,7 +15,7 @@ export function getTranslatorSessionUpdate(lang1: Language, lang2: Language) {
               speaker: {
                 type: "number",
                 description:
-                  "A unique number representing the voice of the speaker, to distinguish them from other speakers in the UI. Multiple speakers may be speaking the same language and should have their own numbers.",
+                  "A unique number representing the voice of the person speaking, to distinguish them from other speakers in the UI. Multiple people may be speaking and each should have their own (stable) numbers.",
               },
               [lang1.code]: {
                 type: "string",

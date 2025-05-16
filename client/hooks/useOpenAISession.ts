@@ -28,6 +28,25 @@ interface OpenAIEvent {
   _direction?: "sent" | "received" | "internal";
 }
 
+export interface TokenUsage {
+  total_tokens: number;
+  input_tokens: number;
+  output_tokens: number;
+  input_token_details: {
+    text_tokens: number;
+    audio_tokens: number;
+    cached_tokens: number;
+    cached_tokens_details: {
+      text_tokens: number;
+      audio_tokens: number;
+    };
+  };
+  output_token_details: {
+    text_tokens: number;
+    audio_tokens: number;
+  };
+}
+
 export function useOpenAISession(
   apiKey: string | null,
   currentLanguage1: Language,
@@ -38,6 +57,10 @@ export function useOpenAISession(
   const [translationSegments, setTranslationSegments] = useLocalStorage<
     TranslationSegment[]
   >("useOpenAISession:translationSegments", []);
+  const [tokenUsage, setTokenUsage] = useLocalStorage<TokenUsage | null>(
+    "useOpenAISession:tokenUsage",
+    null,
+  );
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
@@ -352,6 +375,50 @@ export function useOpenAISession(
           event.part?.type === "text"
         ) {
           processIncomingEventText(event.part.text);
+        } else if (event && event.type === "response.done") {
+          console.log("Token usage:", event.response.usage);
+          setTokenUsage((usage) => {
+            return {
+              total_tokens:
+                (usage?.total_tokens ?? 0) + event.response.usage.total_tokens,
+              input_tokens:
+                (usage?.input_tokens ?? 0) + event.response.usage.input_tokens,
+              output_tokens:
+                (usage?.output_tokens ?? 0) +
+                event.response.usage.output_tokens,
+              input_token_details: {
+                audio_tokens:
+                  (usage?.input_token_details?.audio_tokens ?? 0) +
+                  event.response.usage.input_token_details.audio_tokens,
+                cached_tokens:
+                  (usage?.input_token_details?.cached_tokens ?? 0) +
+                  event.response.usage.input_token_details.cached_tokens,
+                text_tokens:
+                  (usage?.input_token_details?.text_tokens ?? 0) +
+                  event.response.usage.input_token_details.text_tokens,
+                cached_tokens_details: {
+                  audio_tokens:
+                    (usage?.input_token_details?.cached_tokens_details
+                      ?.audio_tokens ?? 0) +
+                    event.response.usage.input_token_details
+                      .cached_tokens_details.audio_tokens,
+                  text_tokens:
+                    (usage?.input_token_details?.cached_tokens_details
+                      ?.text_tokens ?? 0) +
+                    event.response.usage.input_token_details
+                      .cached_tokens_details.text_tokens,
+                },
+              },
+              output_token_details: {
+                audio_tokens:
+                  (usage?.output_token_details?.audio_tokens ?? 0) +
+                  event.response.usage.output_token_details.audio_tokens,
+                text_tokens:
+                  (usage?.output_token_details?.text_tokens ?? 0) +
+                  event.response.usage.output_token_details.text_tokens,
+              },
+            };
+          });
         }
       };
 
@@ -524,6 +591,7 @@ export function useOpenAISession(
     isSessionActive,
     events,
     translationSegments,
+    tokenUsage,
     startSession,
     stopSession,
     sendClientEvent,

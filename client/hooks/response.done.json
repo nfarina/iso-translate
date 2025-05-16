@@ -1,0 +1,68 @@
+{
+  "type": "response.done",
+  "event_id": "event_BXfJRH72b4uU9JTrI0ZCq",
+  "response": {
+    "object": "realtime.response",
+    "id": "resp_BXfJOqr2b2wxUpPYSBwLs",
+    "status": "completed",
+    "status_details": null,
+    "output": [
+      {
+        "id": "item_BXfJO4yFIlqv0ft1PQBWT",
+        "object": "realtime.item",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"speaker\":1,\"en\":\"Testing one two three\",\"es\":\"Probando uno dos tres\"}"
+          }
+        ]
+      },
+      {
+        "id": "item_BXfJPOyezFepTss5P0IYh",
+        "object": "realtime.item",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"speaker\":1,\"en\":\"Testing one two three\",\"es\":\"Probando uno dos tres\"}"
+          }
+        ]
+      }
+    ],
+    "conversation_id": "conv_BXfJL34FShIAHshPzPJWP",
+    "modalities": [
+      "audio",
+      "text"
+    ],
+    "voice": "verse",
+    "output_audio_format": "pcm16",
+    "temperature": 0.8,
+    "max_output_tokens": "inf",
+    "usage": {
+      "total_tokens": 295,
+      "input_tokens": 253,
+      "output_tokens": 42,
+      "input_token_details": {
+        "text_tokens": 234,
+        "audio_tokens": 19,
+        "cached_tokens": 192,
+        "cached_tokens_details": {
+          "text_tokens": 192,
+          "audio_tokens": 0
+        }
+      },
+      "output_token_details": {
+        "text_tokens": 42,
+        "audio_tokens": 0
+      }
+    },
+    "metadata": null
+  },
+  "timestamp": "7:42:09 PM",
+  "_direction": "received"
+}

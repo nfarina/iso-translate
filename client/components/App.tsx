@@ -13,6 +13,7 @@ import EventLog from "./EventLog";
 import LanguageSelector from "./LanguageSelector";
 import SessionControls from "./SessionControls";
 import TranslationPanel from "./TranslationPanel";
+import UsageBadge from "./UsageBadge";
 import logoWhite from "/assets/logo-horizontal-white.png";
 import logo from "/assets/logo-horizontal.png";
 
@@ -68,6 +69,7 @@ export default function App() {
     isSessionActive,
     events,
     translationSegments,
+    tokenUsage,
     startSession,
     stopSession,
   } = useOpenAISession(apiKey, language1, language2); // Pass selected languages
@@ -88,13 +90,14 @@ export default function App() {
             alt="Iso Translate Logo"
           />
           <div className="ml-auto flex items-center gap-2">
+            {tokenUsage && <UsageBadge tokenUsage={tokenUsage} />}
             <Button
               onClick={() =>
                 startTransition(() => {
                   setShowLanguageSelector(!showLanguageSelector);
                 })
               }
-              className={`p-1 px-2 ${
+              className={`p-1 !px-3 ${
                 showLanguageSelector
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
                   : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
@@ -112,7 +115,7 @@ export default function App() {
                 setShowEvents(!showEvents);
                 setEditingApiKey(false);
               }}
-              className={`p-1 px-2 ${
+              className={`p-1 !px-3 ${
                 showEvents
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
                   : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"
@@ -126,7 +129,7 @@ export default function App() {
                 setEditingApiKey(!editingApiKey);
                 setShowEvents(false);
               }}
-              className={`p-1 px-2 ${
+              className={`p-1 !px-3 ${
                 editingApiKey
                   ? "bg-blue-100 dark:bg-blue-700 !text-blue-600 dark:!text-blue-300"
                   : "!text-gray-500 hover:!text-gray-900 dark:hover:!text-gray-300"

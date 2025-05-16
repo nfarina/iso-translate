@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Copy, Mic, MicOff, Trash2 } from "react-feather";
-import { TranslationSegment } from "../hooks/useOpenAISession";
+import { TokenUsage, TranslationSegment } from "../hooks/useOpenAISession";
 import { useLocalStorage } from "../utils/useLocalStorage";
 import Button from "./Button";
 
@@ -85,10 +85,15 @@ export default function SessionControls({
   const [translationSegments, setTranslationSegments] = useLocalStorage<
     TranslationSegment[]
   >("useOpenAISession:translationSegments", []);
+  const [tokenUsage, setTokenUsage] = useLocalStorage<TokenUsage | null>(
+    "useOpenAISession:tokenUsage",
+    null,
+  );
 
   const clearTranslations = () => {
     if (window.confirm("Are you sure you want to clear all translations?")) {
       setTranslationSegments([]);
+      setTokenUsage(null);
     }
   };
 
