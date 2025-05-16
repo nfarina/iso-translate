@@ -37,7 +37,7 @@ export default function UsageBadge({
     <>
       <button
         onClick={() => setShowDialog(true)}
-        className={`flex items-center text-xs rounded-md py-1 px-3 text-blue-700 dark:text-blue-300 ${className}`}
+        className={`flex items-center text-xs rounded-md py-1 px-3 text-blue-700 dark:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700/40 ${className}`}
       >
         <Zap size={12} className="mr-1" />
         <span>{formattedPrice}</span>
