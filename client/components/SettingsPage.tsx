@@ -78,7 +78,7 @@ export default function SettingsPage({
         {/* API Key Section */}
         <div className="bg-white dark:bg-gray-800 p-4 flex flex-col gap-3 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
           <h3 className="text-md font-semibold dark:text-white">
-            API Key Configuration
+            API key configuration
           </h3>
 
           <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -152,7 +152,7 @@ export default function SettingsPage({
         {/* Version Information Section */}
         <div className="bg-white dark:bg-gray-800 p-4 flex flex-col gap-3 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm overflow-hidden">
           <h3 className="text-md font-semibold dark:text-white flex items-center">
-            App Version
+            App version
             {updateStatus.hasUpdate && (
               <span className="w-2.5 h-2.5 bg-red-500 rounded-full ml-2"></span>
             )}
@@ -160,7 +160,7 @@ export default function SettingsPage({
 
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Current Version: <span className="font-mono">{VERSION}</span>
+              Current version: <span className="font-mono">{VERSION}</span>
             </p>
             <Button
               onClick={checkForUpdate}
@@ -173,7 +173,7 @@ export default function SettingsPage({
                   updateStatus.checking ? "animate-spin" : ""
                 }`}
               />
-              {updateStatus.checking ? "Checking..." : "Check for updates"}
+              {updateStatus.checking ? "Checking..." : "Check now"}
             </Button>
           </div>
 
@@ -197,7 +197,7 @@ export default function SettingsPage({
         {/* Model Selection Section */}
         <div className="bg-white dark:bg-gray-800 p-4 flex flex-col gap-3 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm overflow-hidden">
           <h3 className="text-md font-semibold dark:text-white">
-            Model Selection
+            Model selection
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-300">
             Choose which OpenAI model to use for translations.
