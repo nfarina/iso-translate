@@ -1,0 +1,32 @@
+/* Ruby annotation styles */
+ruby {
+  ruby-align: center;
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: baseline; /* Changed from 1em to baseline for correct alignment */
+  line-height: normal;
+  margin-bottom: 0.5em; /* Add bottom margin for spacing */
+  position: relative; /* For positioning of annotations */
+}
+
+rt {
+  font-size: 0.6em;
+  text-align: center;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.85;
+  font-weight: normal;
+  white-space: nowrap;
+  position: absolute; /* Position annotations above */
+  bottom: 100%; /* Place above the base text */
+  left: 0;
+  right: 0;
+  height: 1em; /* Fixed height */
+}
+
+/* Container for text with ruby annotations */
+p:has(ruby) {
+  line-height: 2.2; /* Increased slightly */
+  position: relative; /* For proper positioning */
+  padding-top: 0.7em; /* Add padding to accommodate annotations */
+}

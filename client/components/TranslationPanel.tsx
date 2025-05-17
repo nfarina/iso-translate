@@ -3,6 +3,8 @@ import { TranslationSegment } from "../hooks/useOpenAISession";
 import { getSpeakerColor, getSpeakerColorDark } from "../utils/colorUtils";
 import { Language } from "../utils/languages";
 import { compressTranslationSegments } from "../utils/merging";
+import { AnnotatedText, parseAnnotatedText } from "../utils/rubyAnnotation";
+import "../utils/rubyStyles.css";
 
 interface TranslationPanelProps {
   isSessionActive: boolean;
@@ -47,10 +49,31 @@ export default function TranslationPanel({
               : getSpeakerColor(segment.speaker),
           }}
         >
-          {segment.translations[language.code] || "..."}
+          {renderWithRubyAnnotation(
+            segment.translations[language.code] || "",
+            language,
+          )}
         </p>
       </div>
     ));
+  }
+
+  function renderWithRubyAnnotation(text: string, language: Language) {
+    const parts = parseAnnotatedText(text, language);
+
+    return parts.map((part, index) => {
+      if (typeof part === "string") {
+        return part;
+      } else {
+        const annotatedPart = part as AnnotatedText;
+        return (
+          <ruby key={index}>
+            {annotatedPart.base}
+            <rt>{annotatedPart.reading}</rt>
+          </ruby>
+        );
+      }
+    });
   }
 
   return (

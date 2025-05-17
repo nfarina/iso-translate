@@ -47,6 +47,12 @@ export default function LanguageSelector({
           >
             <span className="text-gray-800 dark:text-white">
               {currentLanguage1.name}
+              {currentLanguage1.subtitle && (
+                <span className="text-gray-500 dark:text-gray-400">
+                  {" "}
+                  ({currentLanguage1.subtitle})
+                </span>
+              )}
             </span>
           </div>
 
@@ -74,6 +80,12 @@ export default function LanguageSelector({
           >
             <span className="text-gray-800 dark:text-white">
               {currentLanguage2.name}
+              {currentLanguage2.subtitle && (
+                <span className="text-gray-500 dark:text-gray-400">
+                  {" "}
+                  ({currentLanguage2.subtitle})
+                </span>
+              )}
             </span>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { Language } from "./utils/languages";
+import { dedent } from "./utils/strings";
 
 export function getTranslatorSessionUpdate(lang1: Language, lang2: Language) {
   return {
@@ -19,11 +20,15 @@ export function getTranslatorSessionUpdate(lang1: Language, lang2: Language) {
               },
               [lang1.code]: {
                 type: "string",
-                description: `The entire utterance, fully translated (or transcribed) into ${lang1.name}.`,
+                description: `The entire utterance, fully translated (or transcribed) into ${
+                  lang1.name
+                }. ${lang1.annotationInstructions ?? ""}`,
               },
               [lang2.code]: {
                 type: "string",
-                description: `The entire utterance, fully translated (or transcribed) into ${lang2.name}.`,
+                description: `The entire utterance, fully translated (or transcribed) into ${
+                  lang2.name
+                }. ${lang2.annotationInstructions ?? ""}`,
               },
             },
             required: ["speaker", lang1.code, lang2.code],
@@ -35,13 +40,12 @@ export function getTranslatorSessionUpdate(lang1: Language, lang2: Language) {
         type: "server_vad",
         interrupt_response: false,
       },
-      instructions: `
+      instructions: dedent(`
         You are an interpreter named Iso. 
-        When you hear speech, translate it into both ${lang1.name} and ${lang2.name}.
-        Call the "transcribe" function with a JSON object like: { "speaker": <speaker_id_number>, "${lang1.code}": "<text in ${lang1.name}>", "${lang2.code}": "<text in ${lang2.name}>" }.
-        Call this function periodically as speech is heard, don't wait for a full utterance to be spoken.
+        When you hear speech, translate it into both ${lang1.name} and ${lang2.name}, then call the "transcribe" function.
+        Call this function periodically as speech is heard; don't wait for a full utterance to be spoken.
         Do NOT speak, explain, or output anything else.
-      `,
+      `),
     },
   };
 }
