@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "react-feather";
 import { LANGUAGES, Language, LanguageCategory } from "../utils/languages";
 import Dialog from "./Dialog";
@@ -39,6 +39,7 @@ export default function LanguageSelectionDialog({
   title,
 }: LanguageSelectionDialogProps) {
   const [showAllLanguages, setShowAllLanguages] = useState(false);
+  const selectedLanguageRef = useRef<HTMLButtonElement>(null);
 
   // Group languages by category when showing all
   const languagesByCategory = LANGUAGES.reduce((acc, lang) => {
@@ -48,6 +49,29 @@ export default function LanguageSelectionDialog({
     acc[lang.category].push(lang);
     return acc;
   }, {} as Record<LanguageCategory, Language[]>);
+
+  // Check if selected language is in popular category
+  useEffect(() => {
+    const isSelectedLanguagePopular = languagesByCategory["popular"]?.some(
+      (lang) => lang.id === selectedLanguage.id,
+    );
+
+    if (!isSelectedLanguagePopular) {
+      setShowAllLanguages(true);
+    }
+  }, [selectedLanguage.id, isOpen]);
+
+  // Scroll to selected language when dialog opens or language changes
+  useEffect(() => {
+    if (isOpen && selectedLanguageRef.current) {
+      setTimeout(() => {
+        selectedLanguageRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100);
+    }
+  }, [isOpen, selectedLanguage.id, showAllLanguages]);
 
   const categories: LanguageCategory[] = showAllLanguages
     ? CATEGORY_ORDER
@@ -80,6 +104,11 @@ export default function LanguageSelectionDialog({
               {languagesByCategory[category]?.map((language) => (
                 <button
                   key={language.id}
+                  ref={
+                    selectedLanguage.id === language.id
+                      ? selectedLanguageRef
+                      : null
+                  }
                   onClick={() => {
                     onLanguageSelect(language);
                     onClose();
