@@ -11,7 +11,7 @@ ruby {
 
 rt {
   font-size: 0.6em;
-  text-align: center;
+  text-align: left;
   line-height: 1;
   color: inherit;
   opacity: 0.85;

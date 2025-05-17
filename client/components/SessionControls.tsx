@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Check, Copy, Mic, MicOff, Trash2 } from "react-feather";
+import { Check, Copy, Mic, MicOff, Trash2, Zap } from "react-feather";
 import { TranslationSegment } from "../hooks/useOpenAISession";
+import { Language } from "../utils/languages";
 import { ModelOption, TokenUsage } from "../utils/models";
 import { useLocalStorage } from "../utils/useLocalStorage";
 import Button from "./Button";
@@ -72,12 +73,20 @@ interface SessionControlsProps {
   startSession: () => Promise<void>;
   stopSession: () => void;
   isSessionActive: boolean;
+  selectedLanguage?: Language;
+  language1: Language;
+  language2: Language;
+  openSettings: () => void;
 }
 
 export default function SessionControls({
   startSession,
   stopSession,
   isSessionActive,
+  selectedLanguage,
+  language1,
+  language2,
+  openSettings,
 }: SessionControlsProps) {
   const [apiKey, setApiKey] = useLocalStorage<string | null>(
     "App:apiKey",
@@ -125,6 +134,13 @@ export default function SessionControls({
     return "text-white normal-gradient hover:opacity-90";
   };
 
+  // Check if we should show the pronunciation notice
+  const showPronunciationNotice =
+    !isSessionActive &&
+    model === "gpt-4o-mini-realtime-preview" &&
+    (language1?.category === "annotated" ||
+      language2?.category === "annotated");
+
   return (
     <div className="flex items-center justify-between w-full h-full">
       <div className="flex-none">
@@ -141,7 +157,7 @@ export default function SessionControls({
         />
       </div>
 
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex flex-col items-center justify-center gap-2">
         {isSessionActive ? (
           <ActionButton
             action={stopSession}
@@ -151,14 +167,28 @@ export default function SessionControls({
             className="text-white bg-gradient-to-r from-[#bf642b] to-[#c73232] hover:opacity-90"
           />
         ) : (
-          <ActionButton
-            disabled={!apiKey}
-            action={startSession}
-            textDefault="Start listening"
-            textPending="Starting..."
-            icon={<Mic height={16} />}
-            className={getStartButtonStyle()}
-          />
+          <>
+            <ActionButton
+              disabled={!apiKey}
+              action={startSession}
+              textDefault="Start listening"
+              textPending="Starting..."
+              icon={<Mic height={16} />}
+              className={getStartButtonStyle()}
+            />
+            {showPronunciationNotice && !window && (
+              <div
+                onClick={openSettings}
+                className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-1 cursor-pointer hover:underline"
+              >
+                Use a <Zap size={16} className="inline text-amber-500" />
+                <Zap size={16} className="inline text-amber-500 -ml-1" />
+                <Zap size={16} className="inline text-amber-500 -ml-1" />
+                <Zap size={16} className="inline text-amber-500 -ml-1" /> model
+                for pronunciations
+              </div>
+            )}
+          </>
         )}
       </div>
 

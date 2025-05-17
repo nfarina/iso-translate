@@ -82,6 +82,12 @@ export default function App() {
     await originalStartSession();
   };
 
+  // Function to open settings
+  const openSettings = () => {
+    setEditingSettings(true);
+    setShowEvents(false);
+  };
+
   useEffect(() => {
     if (!apiKey && isSessionActive) {
       stopSession();
@@ -228,6 +234,10 @@ export default function App() {
             startSession={startSession}
             stopSession={stopSession}
             isSessionActive={isSessionActive}
+            selectedLanguage={language1}
+            language1={language1}
+            language2={language2}
+            openSettings={openSettings}
           />
         </div>
       </div>
