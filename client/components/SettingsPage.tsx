@@ -27,9 +27,13 @@ export default function SettingsPage({
     "App:apiKey",
     null,
   );
+  const [geminiApiKey, setGeminiApiKey] = useLocalStorage<string | null>(
+    "App:geminiApiKey",
+    null,
+  );
   const [model, setModel] = useLocalStorage<ModelOption>(
     "App:model",
-    "gpt-4o-mini-realtime-preview",
+    "gemini-2.5-flash-native-audio",
   );
   const [tokenUsage, setTokenUsage] = useLocalStorage<TokenUsage | null>(
     "useOpenAISession:tokenUsage",
@@ -81,72 +85,136 @@ export default function SettingsPage({
             API key configuration
           </h3>
 
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            {apiKey
-              ? "Your OpenAI API key is configured."
-              : "Please enter your OpenAI API key to use Iso Translate."}
-          </p>
+          {/* Gemini API Key */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium dark:text-white">
+              Gemini API Key
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {geminiApiKey
+                ? "Your Gemini API key is configured."
+                : "Enter your Gemini API key to use Gemini models."}
+            </p>
 
-          <div className="relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={
-                isFocused
-                  ? apiKey || ""
-                  : apiKey
-                  ? getTruncatedApiKey(apiKey)
-                  : ""
-              }
-              onChange={(e) => setApiKey(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="Enter your OpenAI API key"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
-              autoComplete="off"
-            />
-            {apiKey && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to clear your API key?",
-                    )
-                  ) {
-                    setApiKey(null);
-                  }
+            <div className="relative">
+              <input
+                type="text"
+                value={
+                  isFocused && inputRef.current?.dataset.type === "gemini"
+                    ? geminiApiKey || ""
+                    : geminiApiKey
+                    ? getTruncatedApiKey(geminiApiKey)
+                    : ""
+                }
+                onChange={(e) => setGeminiApiKey(e.target.value)}
+                onFocus={(e) => {
+                  setIsFocused(true);
+                  e.target.dataset.type = "gemini";
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
-                aria-label="Clear API key"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                onBlur={() => setIsFocused(false)}
+                placeholder="Enter your Gemini API key"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
+                autoComplete="off"
+              />
+              {geminiApiKey && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Are you sure you want to clear your Gemini API key?",
+                      )
+                    ) {
+                      setGeminiApiKey(null);
+                    }
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                  aria-label="Clear Gemini API key"
                 >
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            )}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
 
-          {!apiKey && (
-            <Button
-              onClick={() => setApiKey(inputRef.current?.value || "")}
-              disabled={!inputRef.current?.value?.trim()}
-              className="!bg-blue-500 hover:bg-blue-600 !text-white disabled:bg-gray-300 dark:disabled:bg-gray-600"
-            >
-              Save API Key
-            </Button>
-          )}
+          {/* OpenAI API Key */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium dark:text-white">
+              OpenAI API Key
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {apiKey
+                ? "Your OpenAI API key is configured."
+                : "Enter your OpenAI API key to use OpenAI models."}
+            </p>
+
+            <div className="relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={
+                  isFocused && inputRef.current?.dataset.type === "openai"
+                    ? apiKey || ""
+                    : apiKey
+                    ? getTruncatedApiKey(apiKey)
+                    : ""
+                }
+                onChange={(e) => setApiKey(e.target.value)}
+                onFocus={(e) => {
+                  setIsFocused(true);
+                  e.target.dataset.type = "openai";
+                }}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Enter your OpenAI API key"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
+                autoComplete="off"
+              />
+              {apiKey && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Are you sure you want to clear your OpenAI API key?",
+                      )
+                    ) {
+                      setApiKey(null);
+                    }
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                  aria-label="Clear OpenAI API key"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Version Information Section */}
@@ -200,13 +268,37 @@ export default function SettingsPage({
             Model selection
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Choose which OpenAI model to use for translations.
+            Choose which AI model to use for translations.
             <br />
             <Zap size={13} className="inline-block -mt-1" /> indicates the
             relative token cost of the model.
           </p>
 
           <div className="space-y-2">
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="gemini-2.5-flash"
+                name="model"
+                value="gemini-2.5-flash-native-audio"
+                checked={model === "gemini-2.5-flash-native-audio"}
+                onChange={() =>
+                  handleModelChange("gemini-2.5-flash-native-audio")
+                }
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <label
+                htmlFor="gemini-2.5-flash"
+                className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Gemini 2.5 Flash Native Audio{" "}
+                <Zap size={13} className="inline-block -mt-1" />
+                <span className="ml-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded">
+                  Recommended
+                </span>
+              </label>
+            </div>
+
             <div className="flex items-center">
               <input
                 type="radio"
@@ -224,6 +316,7 @@ export default function SettingsPage({
                 className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 GPT-4o mini Realtime{" "}
+                <Zap size={13} className="inline-block -mt-1" />
                 <Zap size={13} className="inline-block -mt-1" />
               </label>
             </div>
@@ -243,6 +336,7 @@ export default function SettingsPage({
                 className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 GPT-4o Realtime <Zap size={13} className="inline-block -mt-1" />
+                <Zap size={13} className="inline-block -mt-1" />
                 <Zap size={13} className="inline-block -mt-1" />
                 <Zap size={13} className="inline-block -mt-1" />
                 <Zap size={13} className="inline-block -mt-1" />

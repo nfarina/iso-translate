@@ -1,32 +1,38 @@
 /* Ruby annotation styles */
 ruby {
   ruby-align: center;
-  display: inline-flex;
-  flex-direction: column;
-  vertical-align: baseline; /* Changed from 1em to baseline for correct alignment */
+  display: inline-block; /* Changed from inline-flex for better native ruby behavior */
+  vertical-align: baseline;
   line-height: normal;
-  margin-bottom: 0.5em; /* Add bottom margin for spacing */
-  position: relative; /* For positioning of annotations */
+  margin: 0 0.1em 0.5em 0; /* Add small horizontal margin to prevent collision */
+  position: relative;
+  text-align: center; /* Center-align the ruby annotation */
 }
 
 rt {
   font-size: 0.6em;
-  text-align: left;
-  line-height: 1;
+  text-align: center; /* Center the annotation over its base */
+  line-height: 1.2; /* Slightly increased for better readability */
   color: inherit;
   opacity: 0.85;
   font-weight: normal;
   white-space: nowrap;
-  position: absolute; /* Position annotations above */
-  bottom: 100%; /* Place above the base text */
-  left: 0;
-  right: 0;
-  height: 1em; /* Fixed height */
+  display: block; /* Use block instead of absolute positioning */
+  padding-bottom: 0.2em; /* Add some space below the annotation */
+  min-height: 1em; /* Ensure consistent height */
 }
 
 /* Container for text with ruby annotations */
 p:has(ruby) {
-  line-height: 2.2; /* Increased slightly */
-  position: relative; /* For proper positioning */
-  padding-top: 0.7em; /* Add padding to accommodate annotations */
+  line-height: 2.8; /* Increased to give more space */
+  position: relative;
+  padding-top: 1em; /* Increased padding for annotations */
+  word-spacing: 0.1em; /* Add slight word spacing to prevent collisions */
+}
+
+/* Alternative: Use native ruby styling for better collision handling */
+@supports (ruby-align: space-around) {
+  ruby {
+    ruby-align: space-around; /* Better spacing when supported */
+  }
 }

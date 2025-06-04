@@ -1,5 +1,6 @@
 import { startTransition, useEffect, useState } from "react";
 import { Code, Globe, Settings } from "react-feather";
+import { useGeminiSession } from "../hooks/useGeminiSession";
 import { useIsDarkMode } from "../hooks/useIsDarkMode";
 import { useOpenAISession } from "../hooks/useOpenAISession";
 import { useVersionCheck } from "../hooks/useVersionCheck";
@@ -25,25 +26,29 @@ const isInstalled =
   "standalone" in window.navigator && window.navigator.standalone;
 
 export default function App() {
-  const [apiKey, setApiKey] = useLocalStorage<string | null>(
-    "App:apiKey",
+  const [openaiApiKey] = useLocalStorage<string | null>("App:apiKey", null);
+  const [geminiApiKey] = useLocalStorage<string | null>(
+    "App:geminiApiKey",
     null,
   );
-  const [model, setModel] = useLocalStorage<ModelOption>(
+  const [model] = useLocalStorage<ModelOption>(
     "App:model",
-    "gpt-4o-mini-realtime-preview",
+    "gemini-2.5-flash-native-audio",
   );
-  const [showLogs, setShowLogs] = useLocalStorage<boolean>(
-    "App:showLogs",
-    false,
-  );
+  const [showLogs] = useLocalStorage<boolean>("App:showLogs", false);
   const [editingSettings, setEditingSettings] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showLanguageSelector, setShowLanguageSelector] = useState(true);
-  const { isDarkMode, setIsDarkMode } = useIsDarkMode();
+  const { isDarkMode } = useIsDarkMode();
 
   // Check for updates periodically
   const { updateStatus, checkForUpdate } = useVersionCheck(300000); // Check every 5 minutes
+
+  // Helper function to determine which API key is needed based on model
+  const isGeminiModel = (modelName: string) => modelName.startsWith("gemini");
+  const getRequiredApiKey = () =>
+    isGeminiModel(model) ? geminiApiKey : openaiApiKey;
+  const hasRequiredApiKey = () => getRequiredApiKey() !== null;
 
   const [language1, setLanguage1] = useLocalStorage<Language>(
     "App:language1",
@@ -61,6 +66,18 @@ export default function App() {
     }
   }, []);
 
+  // Call both hooks unconditionally (following Rules of Hooks)
+  const geminiSession = useGeminiSession(language1, language2, model);
+  const openAISession = useOpenAISession(
+    openaiApiKey,
+    language1,
+    language2,
+    model,
+  );
+
+  // Select which session to use based on the model
+  const currentSession = isGeminiModel(model) ? geminiSession : openAISession;
+
   const {
     isSessionActive,
     events,
@@ -68,7 +85,7 @@ export default function App() {
     tokenUsage,
     startSession: originalStartSession,
     stopSession,
-  } = useOpenAISession(apiKey, language1, language2, model); // Pass model as well
+  } = currentSession;
 
   // Wrap startSession to also close settings when starting
   const startSession = async () => {
@@ -89,10 +106,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!apiKey && isSessionActive) {
+    if (!hasRequiredApiKey() && isSessionActive) {
       stopSession();
     }
-  }, [apiKey, isSessionActive, stopSession]);
+  }, [openaiApiKey, geminiApiKey, model, isSessionActive, stopSession]);
 
   function renderHeader() {
     return (
@@ -184,7 +201,8 @@ export default function App() {
         />
       );
     }
-    if (!apiKey) {
+    if (!hasRequiredApiKey()) {
+      const modelProvider = isGeminiModel(model) ? "Gemini" : "OpenAI";
       return (
         <div className="flex-grow flex items-center justify-center h-full p-4">
           <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-6 max-w-md text-center shadow-sm">
@@ -198,7 +216,7 @@ export default function App() {
                   size={16}
                   className="inline-block -mt-1 align-middle"
                 />{" "}
-                in the top-right corner to add your OpenAI API key.
+                in the top-right corner to add your {modelProvider} API key.
               </p>
             </div>
           </div>

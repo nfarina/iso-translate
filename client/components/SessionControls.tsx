@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Check, Copy, Mic, MicOff, Trash2, Zap } from "react-feather";
-import { TranslationSegment } from "../hooks/useOpenAISession";
 import { Language } from "../utils/languages";
 import { ModelOption, TokenUsage } from "../utils/models";
+import { TranslationSegment } from "../utils/session";
 import { useLocalStorage } from "../utils/useLocalStorage";
 import Button from "./Button";
 
@@ -98,9 +98,9 @@ export default function SessionControls({
   );
   const [translationSegments, setTranslationSegments] = useLocalStorage<
     TranslationSegment[]
-  >("useOpenAISession:translationSegments", []);
+  >("translationSegments", []);
   const [tokenUsage, setTokenUsage] = useLocalStorage<TokenUsage | null>(
-    "useOpenAISession:tokenUsage",
+    "tokenUsage",
     null,
   );
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getTranslatorSessionUpdate } from "../translatorTool.js";
 import { Language } from "../utils/languages.js";
 import { ModelOption, TokenUsage } from "../utils/models.js";
+import { Session, SessionEvent, TranslationSegment } from "../utils/session.js";
 import { useLocalStorage } from "../utils/useLocalStorage.js";
 import { useWakeLock } from "./useWakeLock.js";
 
@@ -12,37 +13,21 @@ interface ParsedTranslationPayload {
   [langCode: string]: string | number; // Accommodates speaker and dynamic lang codes as strings
 }
 
-export interface TranslationSegment {
-  id: string;
-  speaker: number;
-  timestamp: number;
-  translations: Record<string, string>; // Stores translations as { "en": "Hello", "es": "Hola" }
-  language1: Language; // The first language selected by the user
-  language2: Language; // The second language selected by the user
-}
-
-interface OpenAIEvent {
-  type: string;
-  timestamp?: string;
-  event_id?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-  _direction?: "sent" | "received" | "internal";
-}
+// Using shared types from models.ts
 
 export function useOpenAISession(
   apiKey: string | null,
   currentLanguage1: Language,
   currentLanguage2: Language,
   modelName: ModelOption = "gpt-4o-mini-realtime-preview",
-) {
+): Session {
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [events, setEvents] = useState<OpenAIEvent[]>([]);
+  const [events, setEvents] = useState<SessionEvent[]>([]);
   const [translationSegments, setTranslationSegments] = useLocalStorage<
     TranslationSegment[]
-  >("useOpenAISession:translationSegments", []);
+  >("translationSegments", []);
   const [tokenUsage, setTokenUsage] = useLocalStorage<TokenUsage | null>(
-    "useOpenAISession:tokenUsage",
+    "tokenUsage",
     null,
   );
 
@@ -59,10 +44,10 @@ export function useOpenAISession(
       eventDataOrObject: string | object,
       direction: "sent" | "received" | "internal",
     ) => {
-      let event: OpenAIEvent;
+      let event: SessionEvent;
       if (typeof eventDataOrObject === "string") {
         try {
-          event = JSON.parse(eventDataOrObject) as OpenAIEvent;
+          event = JSON.parse(eventDataOrObject) as SessionEvent;
         } catch (error) {
           console.error(
             "Error parsing event JSON:",
@@ -78,7 +63,7 @@ export function useOpenAISession(
           };
         }
       } else {
-        event = eventDataOrObject as OpenAIEvent;
+        event = eventDataOrObject as SessionEvent;
       }
 
       if (!event.timestamp) {
@@ -162,8 +147,8 @@ export function useOpenAISession(
   );
 
   const sendClientEvent = useCallback(
-    (
-      message: Omit<OpenAIEvent, "timestamp" | "event_id" | "_direction"> & {
+    async (
+      message: Omit<SessionEvent, "timestamp" | "event_id" | "_direction"> & {
         event_id?: string;
       },
     ) => {
@@ -475,7 +460,7 @@ export function useOpenAISession(
     modelName,
   ]);
 
-  const stopSession = useCallback(() => {
+  const stopSession = useCallback(async () => {
     console.log("Stopping session...");
     storeEvent({ type: "info_session_stopping" }, "internal");
 
@@ -541,6 +526,5 @@ export function useOpenAISession(
     tokenUsage,
     startSession,
     stopSession,
-    sendClientEvent,
   };
 }

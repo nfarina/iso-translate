@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { TranslationSegment } from "../hooks/useOpenAISession";
 import { getSpeakerColor, getSpeakerColorDark } from "../utils/colorUtils";
 import { Language } from "../utils/languages";
 import { compressTranslationSegments } from "../utils/merging";
 import { AnnotatedText, parseAnnotatedText } from "../utils/rubyAnnotation";
 import "../utils/rubyStyles.css";
+import { TranslationSegment } from "../utils/session";
 
 interface TranslationPanelProps {
   isSessionActive: boolean;

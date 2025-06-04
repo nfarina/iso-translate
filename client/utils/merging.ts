@@ -1,5 +1,5 @@
-import { TranslationSegment } from "../hooks/useOpenAISession";
 import { merge } from "./merge";
+import { TranslationSegment } from "./session";
 
 export function compressTranslationSegments(
   segments: TranslationSegment[],

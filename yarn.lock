@@ -5397,7 +5397,6 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.5.1"
     firebase: "npm:^11.8.1"
     firebase-tools: "npm:^14.5.1"
-    mime: "npm:^4.0.7"
     openai: "npm:^5.1.0"
     postcss: "npm:^8.5.4"
     postcss-nesting: "npm:^13.0.1"
@@ -6099,15 +6098,6 @@ __metadata:
   bin:
     mime: cli.js
   checksum: 10c0/a7f2589900d9c16e3bdf7672d16a6274df903da958c1643c9c45771f0478f3846dcb1097f31eb9178452570271361e2149310931ec705c037210fc69639c8e6c
-  languageName: node
-  linkType: hard
-
-"mime@npm:^4.0.7":
-  version: 4.0.7
-  resolution: "mime@npm:4.0.7"
-  bin:
-    mime: bin/cli.js
-  checksum: 10c0/2fd22ee2012a3f1dcac7dd06b7dc314dd677ebcefb14355b7c9453f0092af6eabbe9d754d9849d2a1f346ddd53d716a851379be05386f7a6ccb40af4bd61f32b
   languageName: node
   linkType: hard
 

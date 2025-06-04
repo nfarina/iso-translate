@@ -15,9 +15,11 @@ export default function TokenUsageDialog({
 }: TokenUsageDialogProps) {
   const { model, total_tokens, input_token_details, output_token_details } =
     tokenUsage;
-
   const { totalCost } = calculateTokenCosts(tokenUsage);
   const formattedPrice = formatPrice(totalCost, 4); // 4 decimal places for the dialog
+
+  // Check if this is a Gemini model (to hide cached tokens since they're always 0)
+  const isGemini = model === "gemini-2.5-flash-native-audio";
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
@@ -59,12 +61,14 @@ export default function TokenUsageDialog({
                 {input_token_details.audio_tokens}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="dark:text-gray-300">Cached:</span>
-              <span className="dark:text-gray-300">
-                {input_token_details.cached_tokens}
-              </span>
-            </div>
+            {!isGemini && (
+              <div className="flex justify-between">
+                <span className="dark:text-gray-300">Cached:</span>
+                <span className="dark:text-gray-300">
+                  {input_token_details.cached_tokens}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

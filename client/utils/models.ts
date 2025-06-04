@@ -1,6 +1,7 @@
 export type ModelOption =
   | "gpt-4o-mini-realtime-preview"
-  | "gpt-4o-realtime-preview";
+  | "gpt-4o-realtime-preview"
+  | "gemini-2.5-flash-native-audio";
 
 export interface TokenUsage {
   model: ModelOption;
@@ -44,12 +45,28 @@ export const GPT_4O_MINI_RATES = {
   audio_output: 20.0 / 1000000, // $20.00 per 1M audio output tokens
 };
 
+export const GEMINI_2_5_FLASH_NATIVE_AUDIO_RATES = {
+  // Text rates
+  text_input: 0.5 / 1000000, // $0.50 per 1M text input tokens
+  text_cached: 0.5 / 1000000, // Same as input for Gemini (no separate cached rate)
+  text_output: 2.0 / 1000000, // $2.00 per 1M text output tokens
+  // Audio rates
+  audio_input: 3.0 / 1000000, // $3.00 per 1M audio input tokens
+  audio_cached: 3.0 / 1000000, // Same as input for Gemini
+  audio_output: 12.0 / 1000000, // $12.00 per 1M audio output tokens
+};
+
 export type TokenRates = typeof GPT_4O_RATES;
 
 export function getModelRates(model: ModelOption): TokenRates {
-  return model === "gpt-4o-mini-realtime-preview"
-    ? GPT_4O_MINI_RATES
-    : GPT_4O_RATES;
+  switch (model) {
+    case "gpt-4o-mini-realtime-preview":
+      return GPT_4O_MINI_RATES;
+    case "gemini-2.5-flash-native-audio":
+      return GEMINI_2_5_FLASH_NATIVE_AUDIO_RATES;
+    default:
+      return GPT_4O_RATES;
+  }
 }
 
 export function calculateTokenCosts(tokenUsage: TokenUsage) {
