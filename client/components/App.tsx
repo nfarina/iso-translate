@@ -256,6 +256,7 @@ export default function App() {
             language1={language1}
             language2={language2}
             openSettings={openSettings}
+            mediaStream={currentSession.mediaStream}
           />
         </div>
       </div>

@@ -1,4 +1,10 @@
-import { GoogleGenAI, MediaResolution, Modality, Type } from "@google/genai";
+import {
+  GoogleGenAI,
+  LiveConnectConfig,
+  MediaResolution,
+  Modality,
+  Type,
+} from "@google/genai";
 import { useRef, useState } from "react";
 import { Language } from "../utils/languages.js";
 import { TokenUsage } from "../utils/models.js";
@@ -212,6 +218,14 @@ export function useGeminiSession(
             },
           },
         },
+        realtimeInputConfig: {
+          // turnCoverage: TurnCoverage.TURN_INCLUDES_ALL_INPUT,
+          // activityHandling: ActivityHandling.NO_INTERRUPTION,
+          automaticActivityDetection: {
+            // disabled: true,
+            silenceDurationMs: 0,
+          },
+        },
         contextWindowCompression: {
           triggerTokens: "25600",
           slidingWindow: { targetTokens: "12800" },
@@ -224,7 +238,7 @@ export function useGeminiSession(
             },
           ],
         },
-      };
+      } satisfies LiveConnectConfig;
 
       liveSessionRef.current = await genAiClientRef.current.live.connect({
         model,
@@ -281,7 +295,10 @@ export function useGeminiSession(
                 "internal",
               );
             }
-            if (message.usageMetadata) {
+            if (
+              message.usageMetadata &&
+              Object.keys(message.usageMetadata).length > 0 // Sometimes we get an empty object
+            ) {
               // Process Gemini usage metadata
               const { promptTokenCount, totalTokenCount, promptTokensDetails } =
                 message.usageMetadata;
@@ -539,5 +556,6 @@ export function useGeminiSession(
     tokenUsage, // Stubbed for Gemini
     startSession,
     stopSession,
+    mediaStream: mediaStreamRef.current,
   };
 }

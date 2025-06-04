@@ -1,33 +1,32 @@
 /* Ruby annotation styles */
-ruby {
+ruby-disabled {
   ruby-align: center;
   display: inline-block; /* Changed from inline-flex for better native ruby behavior */
-  vertical-align: baseline;
+  vertical-align: bottom;
   line-height: normal;
   margin: 0 0.1em 0.5em 0; /* Add small horizontal margin to prevent collision */
   position: relative;
   text-align: center; /* Center-align the ruby annotation */
 }
 
-rt {
+rt-disabled {
   font-size: 0.6em;
-  text-align: center; /* Center the annotation over its base */
-  line-height: 1.2; /* Slightly increased for better readability */
   color: inherit;
   opacity: 0.85;
   font-weight: normal;
   white-space: nowrap;
   display: block; /* Use block instead of absolute positioning */
-  padding-bottom: 0.2em; /* Add some space below the annotation */
-  min-height: 1em; /* Ensure consistent height */
 }
 
 /* Container for text with ruby annotations */
 p:has(ruby) {
-  line-height: 2.8; /* Increased to give more space */
-  position: relative;
-  padding-top: 1em; /* Increased padding for annotations */
-  word-spacing: 0.1em; /* Add slight word spacing to prevent collisions */
+  line-height: 1.8;
+}
+
+rt {
+  font-size: 0.6em;
+  color: inherit;
+  opacity: 0.85;
 }
 
 /* Alternative: Use native ruby styling for better collision handling */

@@ -4,12 +4,13 @@ import { Language } from "../utils/languages";
 import { ModelOption, TokenUsage } from "../utils/models";
 import { TranslationSegment } from "../utils/session";
 import { useLocalStorage } from "../utils/useLocalStorage";
+import AudioVisualization from "./AudioVisualization";
 import Button from "./Button";
 
 interface SessionControlActionProps {
   action: () => Promise<void> | void; // Can be async or sync
-  textDefault: string;
-  textPending: string;
+  textDefault: React.ReactNode;
+  textPending: React.ReactNode;
   icon: React.ReactNode;
   successIcon?: React.ReactNode;
   showTextLabel?: boolean;
@@ -77,6 +78,7 @@ interface SessionControlsProps {
   language1: Language;
   language2: Language;
   openSettings: () => void;
+  mediaStream?: MediaStream | null;
 }
 
 export default function SessionControls({
@@ -87,6 +89,7 @@ export default function SessionControls({
   language1,
   language2,
   openSettings,
+  mediaStream,
 }: SessionControlsProps) {
   const [apiKey, setApiKey] = useLocalStorage<string | null>(
     "App:apiKey",
@@ -161,20 +164,31 @@ export default function SessionControls({
         {isSessionActive ? (
           <ActionButton
             action={stopSession}
-            textDefault="Stop listening"
+            textDefault={
+              <AudioVisualization
+                audioStream={mediaStream}
+                isActive={isSessionActive}
+              />
+            }
             textPending="Stopping..."
             icon={<MicOff height={16} />}
-            className="text-white bg-gradient-to-r from-[#bf642b] to-[#c73232] hover:opacity-90"
+            className="text-white bg-gradient-to-r from-[#bf642b] to-[#c73232] hover:opacity-90 relative min-w-[200px] w-[200px] whitespace-nowrap min-h-11"
           />
         ) : (
           <>
             <ActionButton
               disabled={!apiKey}
               action={startSession}
-              textDefault="Start listening"
-              textPending="Starting..."
+              textDefault={
+                <span className="min-w-[130px] inline-block">
+                  Start listening
+                </span>
+              }
+              textPending={
+                <span className="min-w-[130px] inline-block">Starting...</span>
+              }
               icon={<Mic height={16} />}
-              className={getStartButtonStyle()}
+              className={`${getStartButtonStyle()} relative min-w-[200px] w-[200px] whitespace-nowrap min-h-11`}
             />
             {showPronunciationNotice && !window && (
               <div

@@ -34,6 +34,7 @@ export function useOpenAISession(
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const lastTextRef = useRef("");
 
   // Use the new wake lock hook
@@ -278,6 +279,7 @@ export function useOpenAISession(
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
+      mediaStreamRef.current = mediaStream;
       mediaStream
         .getTracks()
         .forEach((track) => pc.addTrack(track, mediaStream));
@@ -502,6 +504,11 @@ export function useOpenAISession(
       audioElementRef.current.srcObject = null;
     }
 
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+
     setIsSessionActive(false);
     lastTextRef.current = "";
     console.log("Session stopped.");
@@ -526,5 +533,6 @@ export function useOpenAISession(
     tokenUsage,
     startSession,
     stopSession,
+    mediaStream: mediaStreamRef.current,
   };
 }
