@@ -326,9 +326,11 @@ export default function SettingsPage({
                 type="radio"
                 id="gpt-4o"
                 name="model"
-                value="gpt-4o-realtime-preview"
-                checked={model === "gpt-4o-realtime-preview"}
-                onChange={() => handleModelChange("gpt-4o-realtime-preview")}
+                value="gpt-4o-realtime-preview-2025-06-03"
+                checked={model === "gpt-4o-realtime-preview-2025-06-03"}
+                onChange={() =>
+                  handleModelChange("gpt-4o-realtime-preview-2025-06-03")
+                }
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
               />
               <label

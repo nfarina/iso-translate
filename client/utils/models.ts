@@ -1,6 +1,6 @@
 export type ModelOption =
   | "gpt-4o-mini-realtime-preview"
-  | "gpt-4o-realtime-preview"
+  | "gpt-4o-realtime-preview-2025-06-03"
   | "gemini-2.5-flash-native-audio";
 
 export interface TokenUsage {

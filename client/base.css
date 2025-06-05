@@ -69,4 +69,11 @@ nav {
   );
 }
 
+.extra-vibe-gradient {
+  background: linear-gradient(to right,
+    color(display-p3 0.5534 0.0071 0.983),
+    color(display-p3 0.9957 0.0071 0.5534)
+  );
+}
+
 /* Additional dark mode overrides can be added here */

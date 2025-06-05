@@ -1,6 +1,8 @@
 import {
+  ActivityHandling,
   GoogleGenAI,
   LiveConnectConfig,
+  Session as LiveSession,
   MediaResolution,
   Modality,
   Type,
@@ -88,7 +90,8 @@ export function useGeminiSession(
   );
 
   const genAiClientRef = useRef<GoogleGenAI | null>(null);
-  const liveSessionRef = useRef<any | null>(null); // Type from @google/genai for LiveSession
+  const liveSessionRef = useRef<LiveSession | null>(null); // Type from @google/genai for LiveSession
+  const sentChunksRef = useRef<number>(0);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -220,11 +223,11 @@ export function useGeminiSession(
         },
         realtimeInputConfig: {
           // turnCoverage: TurnCoverage.TURN_INCLUDES_ALL_INPUT,
-          // activityHandling: ActivityHandling.NO_INTERRUPTION,
-          automaticActivityDetection: {
-            // disabled: true,
-            silenceDurationMs: 0,
-          },
+          activityHandling: ActivityHandling.NO_INTERRUPTION,
+          // automaticActivityDetection: {
+          // disabled: true,
+          // silenceDurationMs: 0,
+          // },
         },
         contextWindowCompression: {
           triggerTokens: "25600",
@@ -234,7 +237,7 @@ export function useGeminiSession(
         systemInstruction: {
           parts: [
             {
-              text: `You are a passive translator named Iso. Please only respond with the text of any speech you hear, transcribed and/or translated into both ${currentLanguage1.name} and ${currentLanguage2.name}. Respond only with tool calls. Do not wait for speakers to finish completely before transcribing, you should emit a tool call roughly every five seconds.`,
+              text: `You are a passive translator named Iso. Please only respond with the text of any speech you hear, transcribed and/or translated into both ${currentLanguage1.name} and ${currentLanguage2.name}. Respond only with tool calls.`,
             },
           ],
         },
@@ -274,6 +277,15 @@ export function useGeminiSession(
                   };
                   setTranslationSegments((prev) => [...prev, newSegment]);
                 }
+
+                // Send blank result.
+                liveSessionRef.current?.sendToolResponse({
+                  functionResponses: {
+                    id: functionCall.id,
+                    name: "transcribe",
+                    response: {},
+                  },
+                });
               }
             }
             if (message.inputTranscription) {
@@ -429,6 +441,13 @@ export function useGeminiSession(
           );
 
           try {
+            if (sentChunksRef.current === 0) {
+              // console.log("sending activity start");
+              // liveSessionRef.current.sendRealtimeInput({
+              //   activityStart: {},
+              // });
+            }
+            sentChunksRef.current++;
             liveSessionRef.current.sendRealtimeInput({
               media: {
                 data: base64AudioData,
@@ -451,6 +470,18 @@ export function useGeminiSession(
       // The worklet node does not need to connect to destination if it only posts messages.
       // If you want to hear the audio (e.g., for loopback testing, connect to destination)
       // audioWorkletNodeRef.current.connect(audioContextRef.current.destination);
+
+      setInterval(() => {
+        if (liveSessionRef.current) {
+          if (sentChunksRef.current > 0) {
+            // console.log("sending activity end");
+            // liveSessionRef.current.sendRealtimeInput({
+            //   activityEnd: {},
+            // });
+            sentChunksRef.current = 0;
+          }
+        }
+      }, 3000);
 
       setIsSessionActive(true);
       storeEvent({ type: "info_gemini_session_active" }, "internal");

@@ -129,9 +129,11 @@ export default function SessionControls({
 
   // Get the appropriate button style based on model
   const getStartButtonStyle = () => {
-    if (model === "gpt-4o-realtime-preview") {
+    if (model === "gpt-4o-realtime-preview-2025-06-03") {
       // More vibrant style for GPT-4o
       return "text-white vibe-gradient hover:opacity-90";
+    } else if (model === "gemini-2.5-flash-native-audio") {
+      return "text-white extra-vibe-gradient hover:opacity-90";
     }
     // Default style for GPT-4o mini
     return "text-white normal-gradient hover:opacity-90";
